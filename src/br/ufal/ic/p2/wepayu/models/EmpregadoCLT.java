@@ -3,12 +3,10 @@ import java.math.BigDecimal;
 
 /*Empregado que recebe salário fixo*/
 
-public class EmpregadoCLT extends Empregado {
-    public EmpregadoCLT(
-            String nome,
-            String endereco,
-            BigDecimal salario) {
-
+public class EmpregadoCLT extends Empregado
+{
+    public EmpregadoCLT(String nome, String endereco, BigDecimal salario)
+    {
         super(nome, endereco, salario);
     }
 
@@ -16,7 +14,8 @@ public class EmpregadoCLT extends Empregado {
     /*Achei relevante por ser POO, então estou tentando usar esse conceito de polimorfismo*/
     /*As classe filhas tem que responder por conta própria*/
     @Override
-    protected String getTipoEmpregado() {
+    protected String getTipoEmpregado()
+    {
         return "CLT";
     }
 

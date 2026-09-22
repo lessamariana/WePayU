@@ -10,26 +10,21 @@ import java.math.BigDecimal;
 /*É um padrão para a lógica de criação de objetos e serve para centralizar
  a parte de criação em um lugar só, achei que fazia sentido já que são vários tipos de empregado */
 
-public class EmpregadoFactory {
+public class EmpregadoFactory
+{
     //Empregados sem comissão
 
-    public Empregado criar(
-            String nome,
-            String endereco,
-            String tipo,
-            BigDecimal salario) {
+    public Empregado criar(String nome, String endereco, String tipo, BigDecimal salario)
+    {
 
-        switch (tipo) {
+        switch (tipo)
+        {
 
             case "Horista":
-                return new EmpregadoHorista(
-                        nome, endereco, salario
-                );
+                return new EmpregadoHorista(nome, endereco, salario);
 
             case "CLT":
-                return new EmpregadoAssalariado(
-                        nome, endereco, salario
-                );
+                return new EmpregadoAssalariado(nome, endereco, salario);
 
             case "Comissionado":
                 // Comissionado precisa obrigatoriamente receber comissão
@@ -41,22 +36,14 @@ public class EmpregadoFactory {
     }
 
     //Empregado com comissão
-    public Empregado criar(
-            String nome,
-            String endereco,
-            String tipo,
-            BigDecimal salario,
-            BigDecimal comissao) {
+    public Empregado criar(String nome, String endereco, String tipo, BigDecimal salario, BigDecimal comissao)
+    {
 
-        switch (tipo) {
+        switch (tipo)
+        {
 
             case "Comissionado":
-                return new EmpregadoComissionado(
-                        nome,
-                        endereco,
-                        salario,
-                        comissao
-                );
+                return new EmpregadoComissionado(nome, endereco, salario, comissao);
 
             case "Horista":
             case "CLT":
@@ -66,4 +53,5 @@ public class EmpregadoFactory {
             default:
                 throw new TipoInvalidoException();
         }
+    }
 }

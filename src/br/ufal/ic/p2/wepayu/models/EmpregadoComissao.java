@@ -3,22 +3,19 @@ import java.math.BigDecimal;
 
 /*Empregado que recebe salário + comissão*/
 
-public class EmpregadoComissao extends Empregado{
-
+public class EmpregadoComissao extends Empregado
+{
     private final BigDecimal comissao;
 
-    public EmpregadoComissao(
-            String nome,
-            String endereco,
-            BigDecimal salario,
-            BigDecimal comissao) {
-
+    public EmpregadoComissao(String nome, String endereco, BigDecimal salario, BigDecimal comissao)
+    {
         super(nome, endereco, salario);
 
         this.comissao = comissao;
     }
 
-    public BigDecimal getComissao() {
+    public BigDecimal getComissao()
+    {
         return comissao;
     }
 
@@ -26,15 +23,17 @@ public class EmpregadoComissao extends Empregado{
     /*Achei relevante por ser POO, então estou tentando usar esse conceito de polimorfismo*/
     /*As classe filhas tem que responder por conta própria*/
     @Override
-    protected String getTipoEmpregado() {
+    protected String getTipoEmpregado()
+    {
         return "Comissionado";
     }
 
     /*Comissão é um atributo especifico de EmpregadoComissao, então adicionei*/
     @Override
-    protected String getAtributoEspecifico(String atributo) {
-
-        if ("comissao".equals(atributo)) {
+    protected String getAtributoEspecifico(String atributo)
+    {
+        if ("comissao".equals(atributo))
+        {
             return formatarValor(comissao);
         }
         /*usei o super pra fazer referencia a classe pai Empregado*/

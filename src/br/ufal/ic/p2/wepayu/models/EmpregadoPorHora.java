@@ -4,12 +4,10 @@ import java.math.BigDecimal;
 
 /*Empregado que recebe por hora trabalhada*/
 
-public class EmpregadoPorHora extends Empregado {
-    public EmpregadoPorHora(
-            String nome,
-            String endereco,
-            BigDecimal salario) {
-
+public class EmpregadoPorHora extends Empregado
+{
+    public EmpregadoPorHora(String nome, String endereco, BigDecimal salario)
+    {
         super(nome, endereco, salario);
     }
 
@@ -18,7 +16,8 @@ public class EmpregadoPorHora extends Empregado {
     /*As classe filhas tem que responder por conta própria*/
 
     @Override
-    protected String getTipoEmpregado() {
+    protected String getTipoEmpregado()
+    {
         return "Horista";
     }
 }
