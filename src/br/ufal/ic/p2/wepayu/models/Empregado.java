@@ -2,6 +2,7 @@
 
 package br.ufal.ic.p2.wepayu.models;
 
+import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoEhComissionadoException;
 import br.ufal.ic.p2.wepayu.Exception.DataInvalidaException;
 import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoEhHoristaException;
 import br.ufal.ic.p2.wepayu.Exception.HorasInvalidaException;
@@ -153,4 +154,18 @@ public abstract class Empregado
     {
         throw new EmpregadoNaoEhHoristaException();
     }
+
+    /*Preparando o terreno para us_4, associado a vendas
+    * Colocando os metodos aqui como fiz com outros*/
+
+    public void lancaVenda(LocalDate data, BigDecimal valor) throws EmpregadoNaoEhComissionadoException
+    {
+        throw new EmpregadoNaoEhComissionadoException();
+    }
+
+    public BigDecimal getVendasRealizadas(LocalDate dataInicial, LocalDate dataFinal) throws EmpregadoNaoEhComissionadoException
+    {
+        throw new EmpregadoNaoEhComissionadoException();
+    }
+
 }
