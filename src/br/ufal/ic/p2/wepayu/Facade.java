@@ -1,12 +1,17 @@
 package br.ufal.ic.p2.wepayu;
 
+import br.ufal.ic.p2.wepayu.Exception.DataInvalidaException;
+import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoEhHoristaException;
+import br.ufal.ic.p2.wepayu.Exception.HorasInvalidaException;
 import br.ufal.ic.p2.wepayu.Exception.ComissaoInvalidaException;
 import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoExisteException;
 import br.ufal.ic.p2.wepayu.Exception.IdentificacaoEmpregadoInvalidaException;
 import br.ufal.ic.p2.wepayu.Exception.SalarioInvalidoException;
 import br.ufal.ic.p2.wepayu.models.Empregado;
 import br.ufal.ic.p2.wepayu.models.EmpregadoFactory;
+import br.ufal.ic.p2.wepayu.models.DataTratamento;
 
+import java.time.LocalDate;
 import java.math.BigDecimal;
 import java.util.LinkedHashMap; /* Estrutura de dados em pares, como uma lista encadeada */
 import java.util.Map;
@@ -22,7 +27,7 @@ public class Facade
 
     private final EmpregadoFactory empregadoFactory;
 
-    /* Criação de Identificador Único (inicie em 1) para cada funcionário criado: Próximo número que será utilizado como identificador.*/
+    /* Criação de Identificador Único (iniciei em 1) para cada funcionário criado: Próximo número que será utilizado como identificador.*/
     private int proximoId;
 
     public Facade()
@@ -185,4 +190,87 @@ public class Facade
         // Se passou pelas duas validações, remove o empregado.
         empregados.remove(id);
     }
+
+    //Adicionando metodos para tratamento de cartoes de ponto pros testes de us_3
+
+    public void lancaCartao(String id, String data, String horas) throws EmpregadoNaoExisteException, IdentificacaoEmpregadoInvalidaException, EmpregadoNaoEhHoristaException, DataInvalidaException, HorasInvalidaException
+    {
+        if(id == null || id.trim().isEmpty())
+        {
+            throw new IdentificacaoEmpregadoInvalidaException();
+        }
+
+        Empregado empregado = buscarEmpregado(id);
+
+        LocalDate dataConvertida = DataTratamento.converterData(data, "Data invalida.");
+
+        BigDecimal horasConvertidas;
+
+        try
+        {
+            horasConvertidas = new BigDecimal(horas.replace(",", "."));
+        } catch (NumberFormatException e)
+        {
+            throw new HorasInvalidaException();
+        }
+
+        empregado.lancaCartao(dataConvertida, horasConvertidas);
+    }
+
+    //Estava usando BigDecimal, mas estava dando erro na formatação, então achei melhor mudar para String
+
+    public String getHorasNormaisTrabalhadas(String id, String dataInicial, String dataFinal) throws EmpregadoNaoExisteException, IdentificacaoEmpregadoInvalidaException, EmpregadoNaoEhHoristaException, DataInvalidaException
+    {
+
+        if(id == null || id.trim().isEmpty())
+        {
+            throw new IdentificacaoEmpregadoInvalidaException();
+        }
+
+        Empregado empregado = buscarEmpregado(id);
+
+        LocalDate inicio = DataTratamento.converterData(dataInicial, "Data inicial invalida.");
+
+        LocalDate fim = DataTratamento.converterData(dataFinal, "Data final invalida.");
+
+        if(!inicio.isBefore(fim))
+        {
+            if(inicio.equals(fim))
+            {
+                return "0";
+            }
+
+            throw new DataInvalidaException("Data inicial nao pode ser posterior aa data final.");
+        }
+
+        return empregado.getHorasNormaisTrabalhadas(inicio, fim).toString().replace('.', ',');
+    }
+
+    public String getHorasExtrasTrabalhadas(String id, String dataInicial, String dataFinal) throws EmpregadoNaoExisteException, IdentificacaoEmpregadoInvalidaException, EmpregadoNaoEhHoristaException, DataInvalidaException
+    {
+        if(id == null || id.trim().isEmpty())
+        {
+            throw new IdentificacaoEmpregadoInvalidaException();
+        }
+
+        Empregado empregado = buscarEmpregado(id);
+
+        LocalDate inicio = DataTratamento.converterData(dataInicial, "Data inicial invalida.");
+
+        LocalDate fim = DataTratamento.converterData(dataFinal, "Data final invalida.");
+
+        if(!inicio.isBefore(fim))
+        {
+            if(inicio.equals(fim))
+            {
+                return "0";
+            }
+
+            throw new DataInvalidaException("Data inicial nao pode ser posterior aa data final."); //nos testes tá assim então deixei
+        }
+
+        return empregado.getHorasExtrasTrabalhadas(inicio, fim).toString().replace('.', ',');
+    }
+
+
 }

@@ -2,6 +2,9 @@
 
 package br.ufal.ic.p2.wepayu.models;
 
+import br.ufal.ic.p2.wepayu.Exception.DataInvalidaException;
+import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoEhHoristaException;
+import br.ufal.ic.p2.wepayu.Exception.HorasInvalidaException;
 import br.ufal.ic.p2.wepayu.Exception.AtributoNaoExisteException;
 import br.ufal.ic.p2.wepayu.Exception.EnderecoInvalidoException;
 import br.ufal.ic.p2.wepayu.Exception.NomeInvalidoException;
@@ -9,6 +12,7 @@ import br.ufal.ic.p2.wepayu.Exception.SalarioInvalidoException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 
 public abstract class Empregado
 {
@@ -130,5 +134,23 @@ public abstract class Empregado
     protected String formatarValor(BigDecimal valor)
     {
         return valor.setScale(2, RoundingMode.HALF_UP).toString().replace('.', ',');
+    }
+
+    /*Adicionei na classe empregado porque foi enfatizado que é interessante evitar usar instanceof
+    * e tentar fazer o polimorfismo de forma correta e foi o jeito que achei que faz sentido*/
+
+    public void lancaCartao(LocalDate data, BigDecimal horas) throws EmpregadoNaoEhHoristaException, DataInvalidaException, HorasInvalidaException
+    {
+        throw new EmpregadoNaoEhHoristaException();
+    }
+
+    public BigDecimal getHorasNormaisTrabalhadas(LocalDate dataInicial, LocalDate dataFinal) throws EmpregadoNaoEhHoristaException, DataInvalidaException
+    {
+        throw new EmpregadoNaoEhHoristaException();
+    }
+
+    public BigDecimal getHorasExtrasTrabalhadas(LocalDate dataInicial, LocalDate dataFinal) throws EmpregadoNaoEhHoristaException, DataInvalidaException
+    {
+        throw new EmpregadoNaoEhHoristaException();
     }
 }
