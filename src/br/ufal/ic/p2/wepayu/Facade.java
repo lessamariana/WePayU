@@ -165,13 +165,24 @@ public class Facade
     /* Adicionei esse metodo para atender o teste us_2 de remover funcionario*/
     /*Usei o containsKey por causa do Map, achei mais simples*/
 
-    public void removerEmpregado(String id) throws EmpregadoNaoExisteException
+    public void removerEmpregado(String id) throws EmpregadoNaoExisteException, IdentificacaoEmpregadoInvalidaException
     {
+
+        // Precisei ajustar pra verificar se o id foi informado
+        // já que o teste da us_2 pede uma mensagem específica para esse caso.
+
+        if (id == null || id.trim().isEmpty()) //verificando se a string tá vazia
+        {
+            throw new IdentificacaoEmpregadoInvalidaException();
+        }
+
+        // Depois verifica se existe um empregado com essa id
         if (!empregados.containsKey(id))
         {
             throw new EmpregadoNaoExisteException();
         }
 
+        // Se passou pelas duas validações, remove o empregado.
         empregados.remove(id);
     }
 }
