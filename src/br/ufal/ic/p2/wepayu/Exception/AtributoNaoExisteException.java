@@ -5,6 +5,6 @@ public class AtributoNaoExisteException extends RuntimeException
 
     public AtributoNaoExisteException()
     {
-        super("Atributo não existe.");
+        super("Atributo nao existe.");
     }
 }

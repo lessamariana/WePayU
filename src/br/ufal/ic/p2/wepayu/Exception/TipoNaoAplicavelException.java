@@ -5,6 +5,6 @@ public class TipoNaoAplicavelException extends RuntimeException
 
     public TipoNaoAplicavelException()
     {
-        super("Tipo escolhido não é aplicável.");
+        super("Tipo nao aplicavel.");
     }
 }

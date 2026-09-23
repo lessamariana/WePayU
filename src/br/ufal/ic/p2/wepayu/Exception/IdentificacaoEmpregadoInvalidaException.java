@@ -5,6 +5,6 @@ public class IdentificacaoEmpregadoInvalidaException extends RuntimeException
 
     public IdentificacaoEmpregadoInvalidaException()
     {
-        super("Identificacao do empregado não pode ser nula.");
+        super("Identificacao do empregado nao pode ser nula.");
     }
 }

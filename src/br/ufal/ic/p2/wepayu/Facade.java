@@ -71,6 +71,11 @@ public class Facade
         return buscarEmpregado(emp).getAtributo(atributo);
     }
 
+    public void encerrarSistema()
+    {
+        // Coloquei para testar, não tá funcionando ainda.
+    }
+
     /*Adicionar um empregado ao mapa e gerar seu o ID.*/
 
     private String adicionarEmpregado(Empregado empregado)
@@ -108,7 +113,7 @@ public class Facade
 
         if (salario == null || salario.isEmpty())
         {
-            throw new SalarioInvalidoException("Salário não pode ser nulo.");
+            throw new SalarioInvalidoException("Salario nao pode ser nulo.");
         }
 
         try
@@ -117,14 +122,14 @@ public class Facade
 
             if (valor.compareTo(BigDecimal.ZERO) < 0)
             {
-                throw new SalarioInvalidoException("Salário não pode ser negativo.");
+                throw new SalarioInvalidoException("Salario deve ser nao-negativo.");
             }
 
             return valor;
 
         } catch (NumberFormatException e)
         {
-            throw new SalarioInvalidoException("Salário deve ser numérico.");
+            throw new SalarioInvalidoException("Salario deve ser numerico.");
         }
     }
 
@@ -135,7 +140,7 @@ public class Facade
 
         if (comissao == null || comissao.isEmpty())
         {
-            throw new ComissaoInvalidaException("Comissão não pode ser nula.");
+            throw new ComissaoInvalidaException("Comissao nao pode ser nula.");
         }
 
         try
@@ -145,7 +150,7 @@ public class Facade
 
             if (valor.compareTo(BigDecimal.ZERO) < 0)
             {
-                throw new ComissaoInvalidaException("Comissão não pode ser negativa.");
+                throw new ComissaoInvalidaException("Comissao deve ser nao-negativa.");
             }
 
             return valor;
@@ -153,7 +158,7 @@ public class Facade
         } catch (NumberFormatException e)
         {
 
-            throw new ComissaoInvalidaException("Comissão deve ser numérica.");
+            throw new ComissaoInvalidaException("Comissao deve ser numerica.");
         }
     }
 }

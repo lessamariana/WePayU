@@ -5,6 +5,6 @@ public class EnderecoInvalidoException extends RuntimeException
 
     public EnderecoInvalidoException()
     {
-        super("Endereço não pode ser nulo.");
+        super("Endereco nao pode ser nulo.");
     }
 }

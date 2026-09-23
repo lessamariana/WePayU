@@ -17,7 +17,7 @@ public abstract class Empregado
     private final BigDecimal salario;
 
     /*Participa do sindicato ou não?*/
-    private boolean sindicato;
+    private boolean sindicalizado;
 
     /*Usei protected para as classes filhas conseguirem acessar*/
 
@@ -30,7 +30,7 @@ public abstract class Empregado
         this.nome = nome;
         this.endereco = endereco;
         this.salario = salario.setScale(2, RoundingMode.HALF_UP);
-        this.sindicato = false;
+        this.sindicalizado = false;
     }
 
     /*Validações para verificar possíveis erros*/
@@ -55,7 +55,7 @@ public abstract class Empregado
     {
         if (salario == null || salario.compareTo(BigDecimal.ZERO) < 0)
         {
-            throw new SalarioInvalidoException("O salário não pode ser negativo.");
+            throw new SalarioInvalidoException("Salario deve ser nao-negativo.");
         }
     }
 
@@ -78,7 +78,7 @@ public abstract class Empregado
 
     public boolean participaSindicato()
     {
-        return sindicato;
+        return sindicalizado;
     }
 
 
@@ -108,8 +108,8 @@ public abstract class Empregado
             case "salario":
                 return formatarValor(salario);
 
-            case "sindicato":
-                return String.valueOf(sindicato);
+            case "sindicalizado":
+                return String.valueOf(sindicalizado);
 
             default:
                 return getAtributoEspecifico(atributo);

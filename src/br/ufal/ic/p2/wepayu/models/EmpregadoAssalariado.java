@@ -3,9 +3,9 @@ import java.math.BigDecimal;
 
 /*Empregado que recebe salário fixo*/
 
-public class EmpregadoCLT extends Empregado
+public class EmpregadoAssalariado extends Empregado
 {
-    public EmpregadoCLT(String nome, String endereco, BigDecimal salario)
+    public EmpregadoAssalariado(String nome, String endereco, BigDecimal salario)
     {
         super(nome, endereco, salario);
     }
@@ -16,7 +16,7 @@ public class EmpregadoCLT extends Empregado
     @Override
     protected String getTipoEmpregado()
     {
-        return "CLT";
+        return "assalariado";
     }
 
 }

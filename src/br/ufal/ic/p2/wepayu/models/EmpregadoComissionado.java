@@ -3,11 +3,11 @@ import java.math.BigDecimal;
 
 /*Empregado que recebe salário + comissão*/
 
-public class EmpregadoComissao extends Empregado
+public class EmpregadoComissionado extends Empregado
 {
     private final BigDecimal comissao;
 
-    public EmpregadoComissao(String nome, String endereco, BigDecimal salario, BigDecimal comissao)
+    public EmpregadoComissionado(String nome, String endereco, BigDecimal salario, BigDecimal comissao)
     {
         super(nome, endereco, salario);
 
@@ -25,7 +25,7 @@ public class EmpregadoComissao extends Empregado
     @Override
     protected String getTipoEmpregado()
     {
-        return "Comissionado";
+        return "comissionado";
     }
 
     /*Comissão é um atributo especifico de EmpregadoComissao, então adicionei*/

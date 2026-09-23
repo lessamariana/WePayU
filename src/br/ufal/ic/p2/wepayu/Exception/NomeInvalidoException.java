@@ -4,6 +4,6 @@ public class NomeInvalidoException extends RuntimeException
 {
     public NomeInvalidoException()
     {
-        super("Nome não pode ser nulo.");
+        super("Nome nao pode ser nulo.");
     }
 }
