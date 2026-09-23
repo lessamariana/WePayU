@@ -161,4 +161,17 @@ public class Facade
             throw new ComissaoInvalidaException("Comissao deve ser numerica.");
         }
     }
+
+    /* Adicionei esse metodo para atender o teste us_2 de remover funcionario*/
+    /*Usei o containsKey por causa do Map, achei mais simples*/
+
+    public void removerEmpregado(String id) throws EmpregadoNaoExisteException
+    {
+        if (!empregados.containsKey(id))
+        {
+            throw new EmpregadoNaoExisteException();
+        }
+
+        empregados.remove(id);
+    }
 }
