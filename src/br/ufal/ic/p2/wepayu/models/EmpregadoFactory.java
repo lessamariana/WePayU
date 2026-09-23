@@ -21,10 +21,10 @@ public class EmpregadoFactory
         {
 
             case "Horista":
-                return new EmpregadoHorista(nome, endereco, salario);
+                return new EmpregadoPorHora(nome, endereco, salario);
 
             case "CLT":
-                return new EmpregadoAssalariado(nome, endereco, salario);
+                return new EmpregadoCLT(nome, endereco, salario);
 
             case "Comissionado":
                 // Comissionado precisa obrigatoriamente receber comissão
@@ -43,7 +43,7 @@ public class EmpregadoFactory
         {
 
             case "Comissionado":
-                return new EmpregadoComissionado(nome, endereco, salario, comissao);
+                return new EmpregadoComissao(nome, endereco, salario, comissao);
 
             case "Horista":
             case "CLT":
