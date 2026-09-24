@@ -13,21 +13,16 @@ public class EmpregadoComissionado extends Empregado
 {
     private final BigDecimal comissao;
 
+    // Lista que guarda todas as vendas realizadas pelo empregado.
     private final List<Venda> vendas;
 
     public EmpregadoComissionado(String nome, String endereco, BigDecimal salario, BigDecimal comissao)
     {
         super(nome, endereco, salario);
-
         this.comissao = comissao;
+
+        // Inicializa a lista de vendas vazia.
         this.vendas = new ArrayList<>();
-    }
-
-    public EmpregadoComissionado(String nome, String endereco, BigDecimal salario, BigDecimal comissao)
-    {
-        super(nome, endereco, salario);
-
-        this.comissao = comissao;
     }
 
     public BigDecimal getComissao()
@@ -38,6 +33,7 @@ public class EmpregadoComissionado extends Empregado
     /*Usei o override para sinalizar que pode substituir esse metodo na classe pai*/
     /*Achei relevante por ser POO, então estou tentando usar esse conceito de polimorfismo*/
     /*As classe filhas tem que responder por conta própria*/
+
     @Override
     protected String getTipoEmpregado()
     {
@@ -56,11 +52,18 @@ public class EmpregadoComissionado extends Empregado
         return super.getAtributoEspecifico(atributo);
     }
 
+    /* Registra uma nova venda para o empregado.*/
     @Override
     public void lancaVenda(LocalDate data, BigDecimal valor)
     {
         vendas.add(new Venda(data, valor));
     }
+
+    /*
+     * Soma as vendas realizadas dentro do intervalo.
+     * A data inicial é incluída.
+     * A data final não é incluída.
+     */
 
     @Override
     public BigDecimal getVendasRealizadas(LocalDate dataInicial, LocalDate dataFinal)
@@ -79,6 +82,4 @@ public class EmpregadoComissionado extends Empregado
 
         return total;
     }
-
-
 }

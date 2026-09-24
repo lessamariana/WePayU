@@ -1,5 +1,7 @@
 package br.ufal.ic.p2.wepayu;
 
+import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoEhComissionadoException;
+import br.ufal.ic.p2.wepayu.Exception.ValorInvalidoException;
 import br.ufal.ic.p2.wepayu.Exception.DataInvalidaException;
 import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoEhHoristaException;
 import br.ufal.ic.p2.wepayu.Exception.HorasInvalidaException;
@@ -7,6 +9,7 @@ import br.ufal.ic.p2.wepayu.Exception.ComissaoInvalidaException;
 import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoExisteException;
 import br.ufal.ic.p2.wepayu.Exception.IdentificacaoEmpregadoInvalidaException;
 import br.ufal.ic.p2.wepayu.Exception.SalarioInvalidoException;
+
 import br.ufal.ic.p2.wepayu.models.Empregado;
 import br.ufal.ic.p2.wepayu.models.EmpregadoFactory;
 import br.ufal.ic.p2.wepayu.models.DataTratamento;
@@ -15,6 +18,7 @@ import java.time.LocalDate;
 import java.math.BigDecimal;
 import java.util.LinkedHashMap; /* Estrutura de dados em pares, como uma lista encadeada */
 import java.util.Map;
+import java.math.RoundingMode; //Descobri que ao dividir números ou ajustar casas decimais de um BigDecimal e o resultado não for exato, o Java não sabe o que fazer com os números que sobram, então coloquei para auxiliar no arredondamento.
 
 /*    Vai receber os comandos dos testes,localizar os objetos necessários e delegar as regras para as classes de negócio. */
 
@@ -272,5 +276,78 @@ public class Facade
         return empregado.getHorasExtrasTrabalhadas(inicio, fim).toString().replace('.', ',');
     }
 
+    /* Lança uma venda para um empregado.A venda só pode ser registrada para um empregado comissionado.*/
+    public void lancaVenda(String id, String data, String valor) throws EmpregadoNaoExisteException, IdentificacaoEmpregadoInvalidaException, EmpregadoNaoEhComissionadoException, DataInvalidaException, ValorInvalidoException
+    {
+        // Verifica se o ID foi informado.
+        if(id == null || id.trim().isEmpty())
+        {
+            throw new IdentificacaoEmpregadoInvalidaException();
+        }
+
+        // Procura o empregado.
+        Empregado empregado = buscarEmpregado(id);
+
+        // Converte e valida a data.
+        LocalDate dataConvertida = DataTratamento.converterData(data, "Data invalida.");
+
+        // Converte o valor informado para BigDecimal.
+        BigDecimal valorConvertido;
+
+        try
+        {
+            valorConvertido = new BigDecimal(valor.replace(",", "."));
+        }
+        catch (NumberFormatException e)
+        {
+            throw new ValorInvalidoException();
+        }
+
+        // O valor da venda precisa ser positivo.
+        if (valorConvertido.compareTo(BigDecimal.ZERO) <= 0)
+        {
+            throw new ValorInvalidoException();
+        }
+
+        /* EmpregadoComissionado registra a venda. Outros tipos lançam EmpregadoNaoEhComissionadoException.*/
+        empregado.lancaVenda(dataConvertida, valorConvertido);
+    }
+
+    /*Retorna o total de vendas realizadas pelo empregadodentro do período informado. */
+
+    public String getVendasRealizadas(String id, String dataInicial, String dataFinal) throws EmpregadoNaoExisteException, IdentificacaoEmpregadoInvalidaException, EmpregadoNaoEhComissionadoException, DataInvalidaException
+    {
+        if(id == null || id.trim().isEmpty())
+        {
+            throw new IdentificacaoEmpregadoInvalidaException();
+        }
+
+        // Procura o empregado.
+        Empregado empregado = buscarEmpregado(id);
+
+        // Converte a data inicial.
+        LocalDate inicio = DataTratamento.converterData(dataInicial, "Data inicial invalida.");
+
+        // Converte a data final.
+        LocalDate fim = DataTratamento.converterData(dataFinal, "Data final invalida.");
+
+        /*A data inicial não pode ser posterior a data final.*/
+        if (inicio.isAfter(fim))
+        {
+            throw new DataInvalidaException("Data inicial nao pode ser posterior aa data final.");
+        }
+
+        BigDecimal total = empregado.getVendasRealizadas(inicio, fim);
+
+        // O EasyAccept espera duas casas decimais e vírgula.
+        return formatarValor(total);
+    }
+
+    /*Como em Empregado está como protected, coloquei novamente aqui, caso ache que vai ser muito reutilizado, irei criar uma classe só para isso depois para evitar repetição*/
+
+    private String formatarValor(BigDecimal valor)
+    {
+        return valor.setScale(2, RoundingMode.HALF_UP).toString().replace('.', ',');
+    }
 
 }
