@@ -2,6 +2,7 @@
 
 package br.ufal.ic.p2.wepayu.models;
 
+import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoEhSindicalizadoException;
 import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoEhComissionadoException;
 import br.ufal.ic.p2.wepayu.Exception.DataInvalidaException;
 import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoEhHoristaException;
@@ -14,6 +15,8 @@ import br.ufal.ic.p2.wepayu.Exception.SalarioInvalidoException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class Empregado
 {
@@ -21,10 +24,15 @@ public abstract class Empregado
     private final String endereco;
     private final BigDecimal salario;
 
-    /*Participa do sindicato ou não?*/
     private boolean sindicalizado;
+    private String idSindicato;
+    private BigDecimal taxaSindical;
 
-    /*Usei protected para as classes filhas conseguirem acessar*/
+    private final List<TaxaServico> taxasServico;
+
+
+    /*Usei protected para as classes filhas conseguirem acessar
+    * Tive que atualizar para us_5, mesma coisa em cima*/
 
     protected Empregado(String nome, String endereco, BigDecimal salario)
     {
@@ -35,7 +43,11 @@ public abstract class Empregado
         this.nome = nome;
         this.endereco = endereco;
         this.salario = salario.setScale(2, RoundingMode.HALF_UP);
+
         this.sindicalizado = false;
+        this.idSindicato = null;
+        this.taxaSindical = BigDecimal.ZERO;
+        this.taxasServico = new ArrayList<>();
     }
 
     /*Validações para verificar possíveis erros*/
@@ -168,4 +180,54 @@ public abstract class Empregado
         throw new EmpregadoNaoEhComissionadoException();
     }
 
+    /*Metódos associados a us_5, fazer sindicalizado, desfazer, coletar dados e associados a taxa de associação*/
+
+    public void sindicalizar(
+            String idSindicato,
+            BigDecimal taxaSindical)
+    {
+        this.sindicalizado = true;
+        this.idSindicato = idSindicato;
+        this.taxaSindical = taxaSindical;
+    }
+
+    public void dessindicalizar()
+    {
+        this.sindicalizado = false;
+        this.idSindicato = null;
+        this.taxaSindical = BigDecimal.ZERO;
+    }
+
+    public String getIdSindicato()
+    {
+        return idSindicato;
+    }
+
+    public BigDecimal getTaxaSindical()
+    {
+        return taxaSindical;
+    }
+
+    /*Registra a taxa de serviço. Só empregados sindicalizados recebem esse tipo de cobrança.*/
+
+    public void lancaTaxaServico(
+            LocalDate data,
+            BigDecimal valor)
+            throws EmpregadoNaoEhSindicalizadoException
+    {
+        if (!sindicalizado)
+        {
+            throw new EmpregadoNaoEhSindicalizadoException();
+        }
+
+        taxasServico.add(new TaxaServico(data, valor));
+    }
+
+    public BigDecimal getTaxasServico(LocalDate dataInicial, LocalDate dataFinal) throws EmpregadoNaoEhSindicalizadoException
+    {
+        if (!sindicalizado)
+        {
+            throw new EmpregadoNaoEhSindicalizadoException();
+        }
+    }
 }
