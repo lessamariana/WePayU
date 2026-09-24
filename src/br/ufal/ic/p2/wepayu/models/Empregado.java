@@ -225,9 +225,24 @@ public abstract class Empregado
 
     public BigDecimal getTaxasServico(LocalDate dataInicial, LocalDate dataFinal) throws EmpregadoNaoEhSindicalizadoException
     {
-        if (!sindicalizado)
+        if(!sindicalizado)
         {
             throw new EmpregadoNaoEhSindicalizadoException();
         }
+
+        BigDecimal total = BigDecimal.ZERO;
+
+        for(TaxaServico taxa : taxasServico)
+        {
+            LocalDate dataTaxa = taxa.getData();
+
+            if(!dataTaxa.isBefore(dataInicial) && dataTaxa.isBefore(dataFinal))
+            {
+                total = total.add(taxa.getValor());
+            }
+        }
+
+        return total;
+
     }
 }

@@ -1,5 +1,10 @@
 package br.ufal.ic.p2.wepayu;
 
+import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoEhSindicalizadoException;
+import br.ufal.ic.p2.wepayu.Exception.IdentificacaoMembroInvalidaException;
+import br.ufal.ic.p2.wepayu.Exception.IdentificacaoSindicatoJaExisteException;
+import br.ufal.ic.p2.wepayu.Exception.MembroNaoExisteException;
+import br.ufal.ic.p2.wepayu.Exception.ValorInvalidoException;
 import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoEhComissionadoException;
 import br.ufal.ic.p2.wepayu.Exception.ValorInvalidoException;
 import br.ufal.ic.p2.wepayu.Exception.DataInvalidaException;
@@ -28,6 +33,7 @@ public class Facade
     /* Guarda os empregados cadastrados. LinkedHashMap mantém a ordem de inserção, o que será útil posteriormente para buscas por nome. */
 
     private final Map<String, Empregado> empregados;
+    private final Map<String, String> membrosSindicato;
 
     private final EmpregadoFactory empregadoFactory;
 
@@ -37,6 +43,7 @@ public class Facade
     public Facade()
     {
         empregados = new LinkedHashMap<>();
+        membrosSindicato = new LinkedHashMap<>();
         empregadoFactory = new EmpregadoFactory();
         proximoId = 1;
     }
@@ -46,6 +53,7 @@ public class Facade
     public void zerarSistema()
     {
         empregados.clear();
+        membrosSindicato.clear();
         proximoId = 1;
     }
 
@@ -343,11 +351,179 @@ public class Facade
         return formatarValor(total);
     }
 
+    public void lancaTaxaServico(String membro, String data, String valor) throws IdentificacaoMembroInvalidaException, MembroNaoExisteException, DataInvalidaException, ValorInvalidoException
+    {
+        if(membro == null || membro.trim().isEmpty())
+        {
+            throw new IdentificacaoMembroInvalidaException();
+        }
+
+        String idEmpregado = membrosSindicato.get(membro);
+
+        if(idEmpregado == null)
+        {
+            throw new MembroNaoExisteException();
+        }
+
+        Empregado empregado = empregados.get(idEmpregado);
+
+        if(empregado == null)
+        {
+            throw new MembroNaoExisteException();
+        }
+
+        LocalDate dataConvertida = DataTratamento.converterData(data, "Data invalida.");
+
+        BigDecimal valorConvertido;
+
+        try
+        {
+            valorConvertido = new BigDecimal(valor.replace(",", "."));
+        }
+        catch(NumberFormatException e)
+        {
+            throw new ValorInvalidoException();
+        }
+
+        if(valorConvertido.compareTo(BigDecimal.ZERO) <= 0)
+        {
+            throw new ValorInvalidoException();
+        }
+
+        empregado.lancaTaxaServico(dataConvertida, valorConvertido);
+    }
+
+    /*
+     * Retorna o total das taxas de serviço
+     * de um empregado dentro de um período.
+     */
+    public String getTaxasServico(String id, String dataInicial, String dataFinal) throws EmpregadoNaoExisteException, IdentificacaoEmpregadoInvalidaException, EmpregadoNaoEhSindicalizadoException, DataInvalidaException
+    {
+        if(id == null || id.trim().isEmpty())
+        {
+            throw new IdentificacaoEmpregadoInvalidaException();
+        }
+
+        Empregado empregado = buscarEmpregado(id);
+
+        LocalDate inicio = DataTratamento.converterData(dataInicial, "Data inicial invalida.");
+
+        LocalDate fim = DataTratamento.converterData(dataFinal, "Data final invalida.");
+
+        if(inicio.isAfter(fim))
+        {
+            throw new DataInvalidaException("Data inicial nao pode ser posterior aa data final.");
+        }
+
+        BigDecimal total = empregado.getTaxasServico(inicio, fim);
+
+        return formatarValor(total);
+    }
+
     /*Como em Empregado está como protected, coloquei novamente aqui, caso ache que vai ser muito reutilizado, irei criar uma classe só para isso depois para evitar repetição*/
 
     private String formatarValor(BigDecimal valor)
     {
         return valor.setScale(2, RoundingMode.HALF_UP).toString().replace('.', ',');
+    }
+
+    /* Retira o empregado do sindicato.*/
+    private void removerSindicalizacao(String id, Empregado empregado)
+    {
+        String idSindicato = empregado.getIdSindicato();
+
+        if (idSindicato != null)
+        {
+            membrosSindicato.remove(idSindicato);
+        }
+
+        empregado.dessindicalizar();
+    }
+
+    /*Converte a taxa sindical informada para BigDecimal.*/
+    private BigDecimal converterTaxaSindical(String taxaSindical)
+    {
+        if(taxaSindical == null || taxaSindical.isEmpty())
+        {
+            return BigDecimal.ZERO;
+        }
+
+        try
+        {
+            BigDecimal valor = new BigDecimal(taxaSindical.replace(',', '.'));
+
+            if(valor.compareTo(BigDecimal.ZERO) < 0)
+            {
+                throw new ValorInvalidoException();
+            }
+
+            return valor;
+        }
+        catch(NumberFormatException e)
+        {
+            throw new ValorInvalidoException();
+        }
+    }
+
+    /* Altera atributo do empregado associado ao vinculo sindical.*/
+    public void alteraEmpregado(String id, String atributo, String valor, String idSindicato, String taxaSindical) throws EmpregadoNaoExisteException, IdentificacaoEmpregadoInvalidaException
+    {
+        Empregado empregado = buscarEmpregado(id);
+
+        if("sindicalizado".equals(atributo))
+        {
+            if("true".equals(valor))
+            {
+                BigDecimal taxa = converterTaxaSindical(taxaSindical);
+
+                alterarSindicalizacao(id, empregado, idSindicato, taxa);
+            }
+            else if("false".equals(valor))
+            {
+                removerSindicalizacao(id, empregado);
+            }
+        }
+    }
+
+    /*Altera um atributo do empregado quando a alteração não precisa de informações adicionais.
+     * Estou usando sobrecarga de métodos nesse caso, pois um dos caso da us_5 usa sindicalizado = false
+     * Quando chamo um método sobrecarregado, o Java olha os argumentos que eu passei e decide qual versão exata do método deve ser executada.
+     * Achei uma resolução mais eficaz para esse erro e vi que faz parte do polimorfismo, coisa interessante para POO.
+     */
+    public void alteraEmpregado(String id, String atributo, String valor) throws EmpregadoNaoExisteException, IdentificacaoEmpregadoInvalidaException
+    {
+        Empregado empregado = buscarEmpregado(id);
+
+        if("sindicalizado".equals(atributo) && "false".equals(valor))
+        {
+            removerSindicalizacao(id, empregado);
+        }
+    }
+
+    /*Coloca um empregado no sindicato.*/
+    private void alterarSindicalizacao(String id, Empregado empregado, String idSindicato, BigDecimal taxaSindical)
+    {
+        if(membrosSindicato.containsKey(idSindicato))
+        {
+            String outroEmpregado = membrosSindicato.get(idSindicato);
+
+            if(!id.equals(outroEmpregado))
+            {
+                throw new IdentificacaoSindicatoJaExisteException();
+            }
+        }
+
+        /*Se o empregado já possuía outra identificação de sindicato, ela deixa de ser utilizada.*/
+        String sindicatoAnterior = empregado.getIdSindicato();
+
+        if (sindicatoAnterior != null && !sindicatoAnterior.equals(idSindicato))
+        {
+            membrosSindicato.remove(sindicatoAnterior);
+        }
+
+        empregado.sindicalizar(idSindicato, taxaSindical);
+
+        membrosSindicato.put(idSindicato, id);
     }
 
 }
