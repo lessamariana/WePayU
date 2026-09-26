@@ -445,7 +445,7 @@ public class Facade
     {
         if(taxaSindical == null || taxaSindical.isEmpty())
         {
-            return BigDecimal.ZERO;
+            throw new TaxaSindicalNulaException();
         }
 
         try
@@ -454,14 +454,14 @@ public class Facade
 
             if(valor.compareTo(BigDecimal.ZERO) < 0)
             {
-                throw new ValorInvalidoException();
+                throw new TaxaSindicalNegativaException();
             }
 
             return valor;
         }
         catch(NumberFormatException e)
         {
-            throw new ValorInvalidoException();
+            throw new TaxaSindicalNaoNumericaException();
         }
     }
 
@@ -524,6 +524,180 @@ public class Facade
         empregado.sindicalizar(idSindicato, taxaSindical);
 
         membrosSindicato.put(idSindicato, id);
+    }
+
+    public void alteraEmpregado(String id, String atributo, String valor) throws EmpregadoNaoExisteException
+    {
+        Empregado empregado = buscarEmpregado(id);
+
+        if("nome".equals(atributo))
+        {
+            empregado.alteraNome(valor);
+            return;
+        }
+
+        if("endereco".equals(atributo))
+        {
+            empregado.alteraEndereco(valor);
+            return;
+        }
+
+        if("salario".equals(atributo))
+        {
+            empregado.alteraSalario(converterSalario(valor));
+            return;
+        }
+
+        if("tipo".equals(atributo))
+        {
+            alterarTipo(id, empregado, valor, null);
+            return;
+        }
+
+        if("comissao".equals(atributo))
+        {
+            empregado.alteraComissao(converterComissao(valor));
+            return;
+        }
+
+        if("metodoPagamento".equals(atributo))
+        {
+            alterarMetodoPagamento(empregado, valor);
+            return;
+        }
+
+        if("sindicalizado".equals(atributo))
+        {
+            if("false".equals(valor))
+            {
+                removerSindicalizacao(id, empregado);
+                return;
+            }
+
+            if("true".equals(valor))
+            {
+                throw new IdentificacaoSindicatoInvalidaException();
+            }
+
+            throw new ValorBooleanoInvalidoException();
+        }
+
+        throw new AtributoNaoExisteException();
+    }
+
+    private void alterarMetodoPagamento(Empregado empregado, String valor)
+    {
+        if("emMaos".equals(valor))
+        {
+            empregado.alteraMetodoPagamento(new PagamentoEmMaos());
+            return;
+        }
+
+        if("correios".equals(valor))
+        {
+            empregado.alteraMetodoPagamento(new PagamentoCorreios());
+            return;
+        }
+
+        throw new MetodoPagamentoInvalidoException();
+    }
+
+    private void alterarTipo(String id, Empregado atual, String tipo, String valorAdicional)
+    {
+        Empregado novoEmpregado;
+
+        if("horista".equals(tipo))
+        {
+            BigDecimal salario = valorAdicional == null ? atual.getSalario() : converterSalario(valorAdicional);
+
+            novoEmpregado = empregadoFactory.criar(atual.getNome(), atual.getEndereco(), "horista", salario);
+        }
+        else if("assalariado".equals(tipo))
+        {
+            BigDecimal salario = valorAdicional == null ? atual.getSalario() : converterSalario(valorAdicional);
+
+            novoEmpregado = empregadoFactory.criar(atual.getNome(), atual.getEndereco(), "assalariado", salario);
+        }
+        else if("comissionado".equals(tipo))
+        {
+            if(valorAdicional == null)
+            {
+                throw new TipoNaoAplicavelException();
+            }
+
+            BigDecimal comissao = converterComissao(valorAdicional);
+
+            novoEmpregado = empregadoFactory.criar(atual.getNome(), atual.getEndereco(), "comissionado", atual.getSalario(), comissao);
+        }
+        else
+        {
+            throw new TipoInvalidoException();
+        }
+
+        novoEmpregado.copiarDadosAlteraveis(atual);
+
+        empregados.put(id, novoEmpregado);
+    }
+
+    public void alteraEmpregado(String id, String atributo, String valor, String valorAdicional) throws EmpregadoNaoExisteException
+    {
+        Empregado empregado = buscarEmpregado(id);
+
+        if ("tipo".equals(atributo))
+        {
+            alterarTipo(id, empregado, valor, valorAdicional);
+            return;
+        }
+
+        throw new AtributoNaoExisteException();
+    }
+
+    // sobrecarda de metodo pois precisa de parametros diferentes para us_6
+
+    public void alteraEmpregado(String id, String atributo, String valor1, String banco, String agencia, String contaCorrente) throws EmpregadoNaoExisteException
+    {
+        Empregado empregado = buscarEmpregado(id);
+
+        if("metodoPagamento".equals(atributo) && "banco".equals(valor1))
+        {
+            empregado.alteraMetodoPagamento(new PagamentoBanco(banco, agencia, contaCorrente));
+            return;
+        }
+
+        throw new MetodoPagamentoInvalidoException();
+    }
+
+    public void alteraEmpregado(String id, String atributo, String valor, String idSindicato, String taxaSindical) throws EmpregadoNaoExisteException
+    {
+        Empregado empregado = buscarEmpregado(id);
+
+        if(!"sindicalizado".equals(atributo))
+        {
+            throw new AtributoNaoExisteException();
+        }
+
+        if("true".equals(valor))
+        {
+            if(idSindicato == null || idSindicato.isEmpty())
+            {
+                throw new IdentificacaoSindicatoInvalidaException();
+            }
+
+            BigDecimal taxa = converterTaxaSindical(taxaSindical);
+
+            alterarSindicalizacao(id, empregado, idSindicato, taxa
+            );
+
+            return;
+        }
+
+        if ("false".equals(valor))
+        {
+            removerSindicalizacao(id, empregado);
+            return;
+        }
+
+        throw new ValorBooleanoInvalidoException();
     }
 
 }

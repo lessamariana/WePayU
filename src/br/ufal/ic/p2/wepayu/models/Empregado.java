@@ -322,7 +322,19 @@ public abstract class Empregado
         throw new EmpregadoNaoEhComissionadoException();
     }
 
+    // Copia para não sumir com objeto
+    public void copiarDadosAlteraveis(Empregado outro)
+    {
+        this.metodoPagamento = outro.metodoPagamento;
 
+        this.sindicalizado = outro.sindicalizado;
+
+        this.idSindicato = outro.idSindicato;
+
+        this.taxaSindical = outro.taxaSindical;
+
+        this.taxasServico.addAll(outro.taxasServico);
+    }
 
 
 }
