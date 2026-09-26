@@ -2,6 +2,9 @@
 
 package br.ufal.ic.p2.wepayu.models;
 
+import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoEhComissionadoException;
+import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoEhSindicalizadoException;
+import br.ufal.ic.p2.wepayu.Exception.AtributoNaoExisteException;
 import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoEhSindicalizadoException;
 import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoEhComissionadoException;
 import br.ufal.ic.p2.wepayu.Exception.DataInvalidaException;
@@ -320,6 +323,13 @@ public abstract class Empregado
     public void alteraComissao(BigDecimal comissao)
     {
         throw new EmpregadoNaoEhComissionadoException();
+    }
+
+    public void alteraSalario(BigDecimal salario)
+    {
+        validarSalario(salario);
+
+        this.salario = salario.setScale(2, RoundingMode.HALF_UP);
     }
 
     // Copia para não sumir com objeto

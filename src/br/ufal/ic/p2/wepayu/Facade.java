@@ -1,10 +1,22 @@
 package br.ufal.ic.p2.wepayu;
 
+import br.ufal.ic.p2.wepayu.Exception.TipoNaoAplicavelException;
+import br.ufal.ic.p2.wepayu.Exception.TipoInvalidoException;
+import br.ufal.ic.p2.wepayu.Exception.AtributoNaoExisteException;
+import br.ufal.ic.p2.wepayu.Exception.IdentificacaoSindicatoInvalidaException;
+import br.ufal.ic.p2.wepayu.Exception.MetodoPagamentoInvalidoException;
+import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoRecebeEmBancoException;
+import br.ufal.ic.p2.wepayu.Exception.BancoInvalidoException;
+import br.ufal.ic.p2.wepayu.Exception.AgenciaInvalidaException;
+import br.ufal.ic.p2.wepayu.Exception.ContaCorrenteInvalidaException;
+import br.ufal.ic.p2.wepayu.Exception.TaxaSindicalNulaException;
+import br.ufal.ic.p2.wepayu.Exception.TaxaSindicalNaoNumericaException;
+import br.ufal.ic.p2.wepayu.Exception.TaxaSindicalNegativaException;
+import br.ufal.ic.p2.wepayu.Exception.ValorBooleanoInvalidoException;
 import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoEhSindicalizadoException;
 import br.ufal.ic.p2.wepayu.Exception.IdentificacaoMembroInvalidaException;
 import br.ufal.ic.p2.wepayu.Exception.IdentificacaoSindicatoJaExisteException;
 import br.ufal.ic.p2.wepayu.Exception.MembroNaoExisteException;
-import br.ufal.ic.p2.wepayu.Exception.ValorInvalidoException;
 import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoEhComissionadoException;
 import br.ufal.ic.p2.wepayu.Exception.ValorInvalidoException;
 import br.ufal.ic.p2.wepayu.Exception.DataInvalidaException;
@@ -18,6 +30,10 @@ import br.ufal.ic.p2.wepayu.Exception.SalarioInvalidoException;
 import br.ufal.ic.p2.wepayu.models.Empregado;
 import br.ufal.ic.p2.wepayu.models.EmpregadoFactory;
 import br.ufal.ic.p2.wepayu.models.DataTratamento;
+import br.ufal.ic.p2.wepayu.models.MetodoPagamento;
+import br.ufal.ic.p2.wepayu.models.PagamentoEmMaos;
+import br.ufal.ic.p2.wepayu.models.PagamentoCorreios;
+import br.ufal.ic.p2.wepayu.models.PagamentoBanco;
 
 import java.time.LocalDate;
 import java.math.BigDecimal;
@@ -465,40 +481,12 @@ public class Facade
         }
     }
 
-    /* Altera atributo do empregado associado ao vinculo sindical.*/
-    public void alteraEmpregado(String id, String atributo, String valor, String idSindicato, String taxaSindical) throws EmpregadoNaoExisteException, IdentificacaoEmpregadoInvalidaException
-    {
-        Empregado empregado = buscarEmpregado(id);
-
-        if("sindicalizado".equals(atributo))
-        {
-            if("true".equals(valor))
-            {
-                BigDecimal taxa = converterTaxaSindical(taxaSindical);
-
-                alterarSindicalizacao(id, empregado, idSindicato, taxa);
-            }
-            else if("false".equals(valor))
-            {
-                removerSindicalizacao(id, empregado);
-            }
-        }
-    }
 
     /*Altera um atributo do empregado quando a alteração não precisa de informações adicionais.
      * Estou usando sobrecarga de métodos nesse caso, pois um dos caso da us_5 usa sindicalizado = false
      * Quando chamo um método sobrecarregado, o Java olha os argumentos que eu passei e decide qual versão exata do método deve ser executada.
      * Achei uma resolução mais eficaz para esse erro e vi que faz parte do polimorfismo, coisa interessante para POO.
-     */
-    public void alteraEmpregado(String id, String atributo, String valor) throws EmpregadoNaoExisteException, IdentificacaoEmpregadoInvalidaException
-    {
-        Empregado empregado = buscarEmpregado(id);
-
-        if("sindicalizado".equals(atributo) && "false".equals(valor))
-        {
-            removerSindicalizacao(id, empregado);
-        }
-    }
+     *Tirei porque fiz sobrecarga com outras e essa tava dando erro/
 
     /*Coloca um empregado no sindicato.*/
     private void alterarSindicalizacao(String id, Empregado empregado, String idSindicato, BigDecimal taxaSindical)
