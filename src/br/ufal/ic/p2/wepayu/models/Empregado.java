@@ -20,13 +20,14 @@ import java.util.List;
 
 public abstract class Empregado
 {
-    private final String nome;
-    private final String endereco;
-    private final BigDecimal salario;
+    private String nome;
+    private String endereco;
+    private BigDecimal salario;
 
     private boolean sindicalizado;
     private String idSindicato;
     private BigDecimal taxaSindical;
+    private MetodoPagamento metodoPagamento;
 
     private final List<TaxaServico> taxasServico;
 
@@ -48,6 +49,7 @@ public abstract class Empregado
         this.idSindicato = null;
         this.taxaSindical = BigDecimal.ZERO;
         this.taxasServico = new ArrayList<>();
+        this.metodoPagamento = new PagamentoEmMaos();
     }
 
     /*Validações para verificar possíveis erros*/
@@ -133,10 +135,56 @@ public abstract class Empregado
         }
     }
 
-    /*Verificação associada a subclasse, para que possa verificar atributos*/
+    /*Verificação associada a subclasse, para que possa verificar atributos
+    * Tive que atualizar por causa dos novos metodos de pagamento*/
 
     protected String getAtributoEspecifico(String atributo)
     {
+        if("comissao".equals(atributo))
+        {
+            throw new EmpregadoNaoEhComissionadoException();
+        }
+
+        if("metodoPagamento".equals(atributo))
+        {
+            return metodoPagamento.getTipo();
+        }
+
+        if("banco".equals(atributo))
+        {
+            return metodoPagamento.getBanco();
+        }
+
+        if("agencia".equals(atributo))
+        {
+            return metodoPagamento.getAgencia();
+        }
+
+        if("contaCorrente".equals(atributo))
+        {
+            return metodoPagamento.getContaCorrente();
+        }
+
+        if("idSindicato".equals(atributo))
+        {
+            if(!sindicalizado)
+            {
+                throw new EmpregadoNaoEhSindicalizadoException();
+            }
+
+            return idSindicato;
+        }
+
+        if("taxaSindical".equals(atributo))
+        {
+            if(!sindicalizado)
+            {
+                throw new EmpregadoNaoEhSindicalizadoException();
+            }
+
+            return formatarValor(taxaSindical);
+        }
+
         throw new AtributoNaoExisteException();
     }
 
@@ -245,4 +293,36 @@ public abstract class Empregado
         return total;
 
     }
+
+    public void alteraMetodoPagamento(MetodoPagamento metodoPagamento)
+    {
+        this.metodoPagamento = metodoPagamento;
+    }
+
+    public String getMetodoPagamento()
+    {
+        return metodoPagamento.getTipo();
+    }
+
+    // Metodos para permitir edição de atributos que podem ser alterados
+    public void alteraNome(String nome)
+    {
+        validarNome(nome);
+        this.nome = nome;
+    }
+
+    public void alteraEndereco(String endereco)
+    {
+        validarEndereco(endereco);
+        this.endereco = endereco;
+    }
+
+    public void alteraComissao(BigDecimal comissao)
+    {
+        throw new EmpregadoNaoEhComissionadoException();
+    }
+
+
+
+
 }

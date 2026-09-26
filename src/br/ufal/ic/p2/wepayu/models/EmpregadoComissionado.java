@@ -1,6 +1,7 @@
 package br.ufal.ic.p2.wepayu.models;
 
 import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoEhComissionadoException;
+import br.ufal.ic.p2.wepayu.Exception.ComissaoInvalidaException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -11,7 +12,7 @@ import java.util.List;
 
 public class EmpregadoComissionado extends Empregado
 {
-    private final BigDecimal comissao;
+    private BigDecimal comissao;
 
     // Lista que guarda todas as vendas realizadas pelo empregado.
     private final List<Venda> vendas;
@@ -81,5 +82,25 @@ public class EmpregadoComissionado extends Empregado
         }
 
         return total;
+    }
+
+    @Override
+    public void alteraComissao(BigDecimal comissao)
+    {
+        if (comissao == null)
+        {
+            throw new ComissaoInvalidaException(
+                    "Comissao nao pode ser nula."
+            );
+        }
+
+        if (comissao.compareTo(BigDecimal.ZERO) < 0)
+        {
+            throw new ComissaoInvalidaException(
+                    "Comissao deve ser nao-negativa."
+            );
+        }
+
+        this.comissao = comissao;
     }
 }
