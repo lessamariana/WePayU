@@ -198,11 +198,6 @@ public abstract class Empregado
 
     protected abstract String getTipoEmpregado();
 
-    protected String formatarValor(BigDecimal valor)
-    {
-        return valor.setScale(2, RoundingMode.HALF_UP).toString().replace('.', ',');
-    }
-
     /*Adicionei na classe empregado porque foi enfatizado que é interessante evitar usar instanceof
     * e tentar fazer o polimorfismo de forma correta e foi o jeito que achei que faz sentido*/
 
@@ -416,6 +411,28 @@ public abstract class Empregado
         this.dataContratacao = dataContratacao;
     }
 
+    // Deleguei para Formatador editar
 
+    protected String formatarValor(BigDecimal valor)
+    {
+        return Formatador.formatarValor(valor);
+    }
 
+    public String getDescricaoMetodoPagamento()
+    {
+        return metodoPagamento.getDescricaoRecibo(endereco);
+    }
+
+    public abstract RegistroPagamento gerarRegistro(LocalDate dataPagamento, ResultadoPagamento resultado) throws EmpregadoNaoEhHoristaException, DataInvalidaException;
+
+    //Horista não fica devendo o sindicatom então tive que atualizar para o sindicato ficar pra depois
+    public boolean recebeuPagamentoEfetivo(ResultadoPagamento resultado)
+    {
+        return resultado.getSalarioBruto().compareTo(BigDecimal.ZERO) > 0;
+    }
+
+    public LocalDate getInicioPeriodoAtual(LocalDate dataPagamento)
+    {
+        return (getDataUltimoPagamento() == null) ? getDataContratacao() : getDataUltimoPagamento().plusDays(1);
+    }
 }

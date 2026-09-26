@@ -7,4 +7,12 @@ public class PagamentoCorreios extends MetodoPagamento
     {
         return "correios";
     }
+
+    @Override
+    public String getDescricaoRecibo(String enderecoEmpregado)
+    {
+        return "Correios, " + enderecoEmpregado;
+    }
+
+
 }

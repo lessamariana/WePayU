@@ -27,6 +27,8 @@ import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoExisteException;
 import br.ufal.ic.p2.wepayu.Exception.IdentificacaoEmpregadoInvalidaException;
 import br.ufal.ic.p2.wepayu.Exception.SalarioInvalidoException;
 import br.ufal.ic.p2.wepayu.Exception.DataInvalidaException;
+import br.ufal.ic.p2.wepayu.Exception.ArquivoDeSaidaInvalidoException;
+
 
 import br.ufal.ic.p2.wepayu.models.Empregado;
 import br.ufal.ic.p2.wepayu.models.EmpregadoFactory;
@@ -36,7 +38,14 @@ import br.ufal.ic.p2.wepayu.models.PagamentoEmMaos;
 import br.ufal.ic.p2.wepayu.models.PagamentoCorreios;
 import br.ufal.ic.p2.wepayu.models.PagamentoBanco;
 import br.ufal.ic.p2.wepayu.models.ResultadoPagamento;
+import br.ufal.ic.p2.wepayu.models.FolhaPagamento;
+import br.ufal.ic.p2.wepayu.models.RegistroPagamento;
+import br.ufal.ic.p2.wepayu.models.Formatador;
 
+
+import java.io.PrintWriter;
+import java.io.FileNotFoundException;
+import java.util.Comparator;
 import java.util.ArrayList;
 import java.util.List;
 import java.time.LocalDate;
@@ -695,6 +704,7 @@ public class Facade
     public String totalFolha(String data) throws DataInvalidaException, EmpregadoNaoEhHoristaException
     {
         LocalDate dataPagamento = DataTratamento.converterData(data, "Data invalida.");
+        FolhaPagamento folha = new FolhaPagamento(dataPagamento);
 
         BigDecimal total = BigDecimal.ZERO;
 
@@ -702,39 +712,11 @@ public class Facade
         {
             if(empregado.deveReceber(dataPagamento))
             {
-                ResultadoPagamento resultado = calcularResultadoPagamento(empregado, dataPagamento);
-                total = total.add(resultado.getSalarioBruto());
+                total = total.add(folha.calcular(empregado).getSalarioBruto());
             }
         }
 
         return formatarValor(total);
-    }
-
-    private ResultadoPagamento calcularResultadoPagamento(Empregado empregado, LocalDate dataPagamento) throws EmpregadoNaoEhHoristaException, DataInvalidaException
-    {
-        BigDecimal salarioBruto = empregado.calcularPagamento(dataPagamento);
-
-        BigDecimal descontos = BigDecimal.ZERO;
-
-        LocalDate inicio;
-
-        if(empregado.getDataUltimoPagamento() == null)
-        {
-            inicio = empregado.getDataContratacao();
-        }
-        else
-        {
-            inicio = empregado.getDataUltimoPagamento().plusDays(1);
-        }
-
-        if(empregado.participaSindicato())
-        {
-            descontos = descontos.add(empregado.calcularTaxaSindical(inicio, dataPagamento));
-        }
-
-        descontos = descontos.add(empregado.calcularTaxasServico(inicio, dataPagamento));
-
-        return new ResultadoPagamento(salarioBruto, descontos);
     }
 
     private String formatarInteiro(BigDecimal valor)
@@ -742,235 +724,156 @@ public class Facade
         return valor.setScale(0, RoundingMode.DOWN).toString();
     }
 
-    private String formatarMetodoPagamento(Empregado empregado)
-    {
-        String metodo = empregado.getMetodoPagamento();
-
-        if("emMaos".equals(metodo))
-        {
-            return "Em maos";
-        }
-
-        if("correios".equals(metodo))
-        {
-            return "Correios, " + empregado.getEndereco();
-        }
-
-        if("banco".equals(metodo))
-        {
-            return "Banco do Brasil, Ag. " + empregado.getAtributo("agencia") + " CC " + empregado.getAtributo("contaCorrente"); //Coloquei Banco do Brasil pois é o que está no arquivo teste
-        }
-
-        return metodo;
-    }
-
     public void rodaFolha(String data, String saida) throws DataInvalidaException, EmpregadoNaoEhHoristaException
     {
         LocalDate dataPagamento = DataTratamento.converterData(data, "Data invalida.");
+        FolhaPagamento folha = new FolhaPagamento(dataPagamento);
 
-        BigDecimal totalFolha = BigDecimal.ZERO;
-
-        try (java.io.PrintWriter arquivo = new java.io.PrintWriter(saida))
-        {
-            arquivo.println("FOLHA DE PAGAMENTO DO DIA " + dataPagamento);
-            arquivo.println("====================================");
-            arquivo.println();
-
-            // ============================================================
-            // HORISTAS
-            // ============================================================
-
-            arquivo.println("===============================================================================================================================");
-            arquivo.println("===================== HORISTAS ================================================================================================");
-            arquivo.println("===============================================================================================================================");
-
-            arquivo.println("Nome                                 Horas Extra Salario Bruto Descontos Salario Liquido Metodo");
-            arquivo.println("==================================== ===== ===== ============= ========= =============== ======================================");
-
-            BigDecimal totalHoras = BigDecimal.ZERO;
-            BigDecimal totalExtras = BigDecimal.ZERO;
-            BigDecimal totalBrutoHoristas = BigDecimal.ZERO;
-            BigDecimal totalDescontosHoristas = BigDecimal.ZERO;
-            BigDecimal totalLiquidoHoristas = BigDecimal.ZERO;
-
-            for(Empregado empregado : empregados.values())
-            {
-                if(!"horista".equals(empregado.getTipo()))
-                {
-                    continue;
-                }
-
-                BigDecimal horasNormais = BigDecimal.ZERO;
-                BigDecimal horasExtras = BigDecimal.ZERO;
-                ResultadoPagamento resultado = new ResultadoPagamento(BigDecimal.ZERO, BigDecimal.ZERO);
-
-                if(empregado.deveReceber(dataPagamento))
-                {
-                    resultado = calcularResultadoPagamento(empregado, dataPagamento);
-
-                    LocalDate inicio;
-
-                    if(empregado.getDataUltimoPagamento() == null)
-                    {
-                        inicio = empregado.getDataContratacao();
-                    }
-                    else
-                    {
-                        inicio = empregado.getDataUltimoPagamento().plusDays(1);
-                    }
-
-                    horasNormais = empregado.getHorasNormaisTrabalhadas(inicio, dataPagamento);
-
-                    horasExtras = empregado.getHorasExtrasTrabalhadas(inicio, dataPagamento);
-                }
-
-                arquivo.printf("%-36s %5s %5s %13s %9s %15s %s%n", empregado.getNome(), formatarInteiro(horasNormais), formatarInteiro(horasExtras), formatarValor(resultado.getSalarioBruto()), formatarValor(resultado.getDescontos()), formatarValor(resultado.getSalarioLiquido()), formatarMetodoPagamento(empregado));
-
-                totalHoras = totalHoras.add(horasNormais);
-                totalExtras = totalExtras.add(horasExtras);
-                totalBrutoHoristas = totalBrutoHoristas.add(resultado.getSalarioBruto());
-                totalDescontosHoristas = totalDescontosHoristas.add(resultado.getDescontos());
-                totalLiquidoHoristas = totalLiquidoHoristas.add(resultado.getSalarioLiquido());
-            }
-
-            arquivo.printf("%-36s %5s %5s %13s %9s %15s%n", "TOTAL HORISTAS", formatarInteiro(totalHoras), formatarInteiro(totalExtras), formatarValor(totalBrutoHoristas), formatarValor(totalDescontosHoristas), formatarValor(totalLiquidoHoristas));
-
-            arquivo.println();
-
-            // ============================================================
-            // ASSALARIADOS
-            // ============================================================
-
-            arquivo.println("===============================================================================================================================");
-            arquivo.println("===================== ASSALARIADOS ============================================================================================");
-            arquivo.println("===============================================================================================================================");
-
-            arquivo.println("Nome                                             Salario Bruto Descontos Salario Liquido Metodo");
-            arquivo.println("================================================ ============= ========= =============== ======================================");
-
-            BigDecimal totalBrutoAssalariados = BigDecimal.ZERO;
-            BigDecimal totalDescontosAssalariados = BigDecimal.ZERO;
-            BigDecimal totalLiquidoAssalariados = BigDecimal.ZERO;
-
-            for(Empregado empregado : empregados.values())
-            {
-                if(!"assalariado".equals(empregado.getTipo()))
-                {
-                    continue;
-                }
-
-                ResultadoPagamento resultado = new ResultadoPagamento(BigDecimal.ZERO, BigDecimal.ZERO);
-
-                if(empregado.deveReceber(dataPagamento))
-                {
-                    resultado = calcularResultadoPagamento(empregado, dataPagamento);
-                }
-
-                arquivo.printf("%-48s %13s %9s %15s %s%n", empregado.getNome(), formatarValor(resultado.getSalarioBruto()), formatarValor(resultado.getDescontos()), formatarValor(resultado.getSalarioLiquido()), formatarMetodoPagamento(empregado));
-
-                totalBrutoAssalariados = totalBrutoAssalariados.add(resultado.getSalarioBruto());
-
-                totalDescontosAssalariados = totalDescontosAssalariados.add(resultado.getDescontos());
-
-                totalLiquidoAssalariados = totalLiquidoAssalariados.add(resultado.getSalarioLiquido());
-            }
-
-            arquivo.printf("%-48s %13s %9s %15s%n", "TOTAL ASSALARIADOS", formatarValor(totalBrutoAssalariados), formatarValor(totalDescontosAssalariados), formatarValor(totalLiquidoAssalariados));
-
-            arquivo.println();
-
-            // ============================================================
-            // COMISSIONADOS
-            // ============================================================
-
-            arquivo.println("===============================================================================================================================");
-            arquivo.println("===================== COMISSIONADOS ===========================================================================================");
-            arquivo.println("===============================================================================================================================");
-
-            arquivo.println("Nome                  Fixo     Vendas   Comissao Salario Bruto Descontos Salario Liquido Metodo");
-            arquivo.println("===================== ======== ======== ======== ============= ========= =============== ======================================");
-
-            BigDecimal totalFixo = BigDecimal.ZERO;
-            BigDecimal totalVendas = BigDecimal.ZERO;
-            BigDecimal totalComissao = BigDecimal.ZERO;
-            BigDecimal totalBrutoComissionados = BigDecimal.ZERO;
-            BigDecimal totalDescontosComissionados = BigDecimal.ZERO;
-            BigDecimal totalLiquidoComissionados = BigDecimal.ZERO;
-
-            for(Empregado empregado : empregados.values())
-            {
-                if(!"comissionado".equals(empregado.getTipo()))
-                {
-                    continue;
-                }
-
-                BigDecimal fixo = BigDecimal.ZERO;
-                BigDecimal vendas = BigDecimal.ZERO;
-                BigDecimal comissao = BigDecimal.ZERO;
-
-                ResultadoPagamento resultado = new ResultadoPagamento(BigDecimal.ZERO, BigDecimal.ZERO);
-
-                if(empregado.deveReceber(dataPagamento))
-                {
-                    resultado = calcularResultadoPagamento(empregado, dataPagamento);
-
-                    EmpregadoComissionado comissionado = (EmpregadoComissionado) empregado;
-
-                    fixo = empregado.getSalario().multiply(new BigDecimal("12")).divide(new BigDecimal("52"), 10, RoundingMode.HALF_UP).multiply(new BigDecimal("2")).setScale(2, RoundingMode.DOWN);
-
-                    LocalDate inicio;
-
-                    if(empregado.getDataUltimoPagamento() == null)
-                    {
-                        inicio = empregado.getDataContratacao();
-                    }
-                    else
-                    {
-                        inicio = empregado.getDataUltimoPagamento().plusDays(1);
-                    }
-
-                    vendas = comissionado.getVendasRealizadas(inicio, dataPagamento);
-
-                    comissao = vendas.multiply(comissionado.getComissao()).setScale(2, RoundingMode.DOWN);
-                }
-
-                arquivo.printf("%-21s %8s %8s %8s %13s %9s %15s %s%n", empregado.getNome(), formatarValor(fixo), formatarValor(vendas), formatarValor(comissao), formatarValor(resultado.getSalarioBruto()), formatarValor(resultado.getDescontos()), formatarValor(resultado.getSalarioLiquido()), formatarMetodoPagamento(empregado));
-
-                totalFixo = totalFixo.add(fixo);
-                totalVendas = totalVendas.add(vendas);
-                totalComissao = totalComissao.add(comissao);
-
-                totalBrutoComissionados = totalBrutoComissionados.add(resultado.getSalarioBruto());
-
-                totalDescontosComissionados = totalDescontosComissionados.add(resultado.getDescontos());
-
-                totalLiquidoComissionados = totalLiquidoComissionados.add(resultado.getSalarioLiquido());
-            }
-
-            arquivo.printf("%-21s %8s %8s %8s %13s %9s %15s%n", "TOTAL COMISSIONADOS", formatarValor(totalFixo), formatarValor(totalVendas), formatarValor(totalComissao), formatarValor(totalBrutoComissionados), formatarValor(totalDescontosComissionados), formatarValor(totalLiquidoComissionados)
-            );
-
-            // ============================================================
-            // TOTAL DA FOLHA
-            // ============================================================
-
-            totalFolha = totalBrutoHoristas.add(totalBrutoAssalariados).add(totalBrutoComissionados);
-
-            arquivo.println();
-            arquivo.println("TOTAL FOLHA: " + formatarValor(totalFolha));
-        }
-
-        // ================================================================
-        // ATUALIZA A DATA DO ÚLTIMO PAGAMENTO
-        // ================================================================
+        // Monta os registros de quem deve receber nesta data, e já separa quem teve pagamento efetivo (bruto > 0) de quem não teve.
+        List<RegistroPagamento> registros = new ArrayList<>();
+        List<Empregado> empregadosComPagamentoEfetivo = new ArrayList<>();
 
         for(Empregado empregado : empregados.values())
         {
             if(empregado.deveReceber(dataPagamento))
             {
-                empregado.setDataUltimoPagamento(dataPagamento);
+                ResultadoPagamento resultado = folha.calcular(empregado);
+                registros.add(empregado.gerarRegistro(dataPagamento, resultado));
+
+                if(empregado.recebeuPagamentoEfetivo(resultado))
+                {
+                    empregadosComPagamentoEfetivo.add(empregado);
+                }
             }
         }
+
+        registros.sort(Comparator.comparing(RegistroPagamento::getNome));
+
+        try (PrintWriter arquivo = new PrintWriter(saida))
+        {
+            arquivo.println("FOLHA DE PAGAMENTO DO DIA " + dataPagamento);
+            arquivo.println("====================================");
+            arquivo.println();
+
+            BigDecimal totalHoristas = imprimirSecaoHoristas(arquivo, registros);
+            arquivo.println();
+            BigDecimal totalAssalariados = imprimirSecaoAssalariados(arquivo, registros);
+            arquivo.println();
+            BigDecimal totalComissionados = imprimirSecaoComissionados(arquivo, registros);
+
+            BigDecimal totalFolha = totalHoristas.add(totalAssalariados).add(totalComissionados);
+
+            arquivo.println();
+            arquivo.println("TOTAL FOLHA: " + Formatador.formatarValor(totalFolha));
+        }
+        catch(FileNotFoundException e)
+        {
+            throw new ArquivoDeSaidaInvalidoException(saida);
+        }
+
+        // So avancamos a data do ultimo pagamento de quem realmente recebeualgo (bruto > 0). Quem ficou zerado (ex.: horista sem horassuficientes) tem a data mantida, para que a taxa sindical e as
+        //horas se acumulem corretamente ate o proximo pagamento de verdade.
+        for(Empregado empregado : empregadosComPagamentoEfetivo)
+        {
+            empregado.setDataUltimoPagamento(dataPagamento);
+        }
+    }
+
+    private BigDecimal imprimirSecaoHoristas(PrintWriter arquivo, List<RegistroPagamento> registros)
+    {
+        arquivo.println("===============================================================================================================================");
+        arquivo.println("===================== HORISTAS ================================================================================================");
+        arquivo.println("===============================================================================================================================");
+        arquivo.println("Nome                                 Horas Extra Salario Bruto Descontos Salario Liquido Metodo");
+        arquivo.println("==================================== ===== ===== ============= ========= =============== ======================================");
+
+        BigDecimal totalHoras = BigDecimal.ZERO, totalExtras = BigDecimal.ZERO;
+        BigDecimal totalBruto = BigDecimal.ZERO, totalDescontos = BigDecimal.ZERO, totalLiquido = BigDecimal.ZERO;
+
+        for(RegistroPagamento registro : registros)
+        {
+            if(!"horista".equals(registro.getTipoEmpregado()))
+            {
+                continue;
+            }
+
+            registro.imprimirLinha(arquivo);
+
+            totalHoras = totalHoras.add(registro.getHorasNormais());
+            totalExtras = totalExtras.add(registro.getHorasExtras());
+            totalBruto = totalBruto.add(registro.getSalarioBruto());
+            totalDescontos = totalDescontos.add(registro.getDescontos());
+            totalLiquido = totalLiquido.add(registro.getSalarioLiquido());
+        }
+
+        arquivo.println();
+        arquivo.printf("%-36s %5s %5s %13s %9s %15s%n", "TOTAL HORISTAS", Formatador.formatarInteiro(totalHoras), Formatador.formatarInteiro(totalExtras), Formatador.formatarValor(totalBruto), Formatador.formatarValor(totalDescontos), Formatador.formatarValor(totalLiquido));
+
+        return totalBruto;
+    }
+
+    private BigDecimal imprimirSecaoAssalariados(PrintWriter arquivo, List<RegistroPagamento> registros)
+    {
+        arquivo.println("===============================================================================================================================");
+        arquivo.println("===================== ASSALARIADOS ============================================================================================");
+        arquivo.println("===============================================================================================================================");
+        arquivo.println("Nome                                             Salario Bruto Descontos Salario Liquido Metodo");
+        arquivo.println("================================================ ============= ========= =============== ======================================");
+
+        BigDecimal totalBruto = BigDecimal.ZERO, totalDescontos = BigDecimal.ZERO, totalLiquido = BigDecimal.ZERO;
+
+        for(RegistroPagamento registro : registros)
+        {
+            if(!"assalariado".equals(registro.getTipoEmpregado()))
+            {
+                continue;
+            }
+
+            registro.imprimirLinha(arquivo);
+
+            totalBruto = totalBruto.add(registro.getSalarioBruto());
+            totalDescontos = totalDescontos.add(registro.getDescontos());
+            totalLiquido = totalLiquido.add(registro.getSalarioLiquido());
+        }
+
+        arquivo.println();
+        arquivo.printf("%-48s %13s %9s %15s%n", "TOTAL ASSALARIADOS", Formatador.formatarValor(totalBruto), Formatador.formatarValor(totalDescontos), Formatador.formatarValor(totalLiquido));
+
+        return totalBruto;
+    }
+
+    private BigDecimal imprimirSecaoComissionados(PrintWriter arquivo, List<RegistroPagamento> registros)
+    {
+        arquivo.println("===============================================================================================================================");
+        arquivo.println("===================== COMISSIONADOS ===========================================================================================");
+        arquivo.println("===============================================================================================================================");
+        arquivo.println("Nome                  Fixo     Vendas   Comissao Salario Bruto Descontos Salario Liquido Metodo");
+        arquivo.println("===================== ======== ======== ======== ============= ========= =============== ======================================");
+
+        BigDecimal totalFixo = BigDecimal.ZERO, totalVendas = BigDecimal.ZERO, totalComissao = BigDecimal.ZERO;
+        BigDecimal totalBruto = BigDecimal.ZERO, totalDescontos = BigDecimal.ZERO, totalLiquido = BigDecimal.ZERO;
+
+        for(RegistroPagamento registro : registros)
+        {
+            if(!"comissionado".equals(registro.getTipoEmpregado()))
+            {
+                continue;
+            }
+
+            registro.imprimirLinha(arquivo);
+
+            totalFixo = totalFixo.add(registro.getSalarioFixo());
+            totalVendas = totalVendas.add(registro.getVendas());
+            totalComissao = totalComissao.add(registro.getComissao());
+            totalBruto = totalBruto.add(registro.getSalarioBruto());
+            totalDescontos = totalDescontos.add(registro.getDescontos());
+            totalLiquido = totalLiquido.add(registro.getSalarioLiquido());
+        }
+
+        arquivo.println();
+        arquivo.printf("%-21s %8s %8s %8s %13s %9s %15s%n", "TOTAL COMISSIONADOS", Formatador.formatarValor(totalFixo), Formatador.formatarValor(totalVendas), Formatador.formatarValor(totalComissao), Formatador.formatarValor(totalBruto), Formatador.formatarValor(totalDescontos), Formatador.formatarValor(totalLiquido));
+
+        return totalBruto;
     }
 
 }

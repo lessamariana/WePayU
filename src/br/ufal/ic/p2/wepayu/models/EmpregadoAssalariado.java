@@ -46,4 +46,30 @@ public class EmpregadoAssalariado extends Empregado
         return getSalario();
     }
 
+    @Override
+    public RegistroPagamento gerarRegistro(LocalDate dataPagamento, ResultadoPagamento resultado)
+    {
+        return new RegistroAssalariado(getNome(), getDescricaoMetodoPagamento(), resultado);
+    }
+
+    @Override
+    public LocalDate getInicioPeriodoAtual(LocalDate dataPagamento)
+    {
+        LocalDate inicio = ultimoDiaUtilDoMesAnterior(dataPagamento).plusDays(1);
+
+        return inicio.isBefore(getDataContratacao()) ? getDataContratacao() : inicio;
+    }
+
+    private LocalDate ultimoDiaUtilDoMesAnterior(LocalDate dataPagamento)
+    {
+        LocalDate ultimoDia = dataPagamento.minusMonths(1).with(TemporalAdjusters.lastDayOfMonth());
+
+        while(ultimoDia.getDayOfWeek() == DayOfWeek.SATURDAY || ultimoDia.getDayOfWeek() == DayOfWeek.SUNDAY)
+        {
+            ultimoDia = ultimoDia.minusDays(1);
+        }
+
+        return ultimoDia;
+    }
+
 }

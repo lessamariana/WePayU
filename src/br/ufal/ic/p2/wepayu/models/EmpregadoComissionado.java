@@ -138,10 +138,28 @@ public class EmpregadoComissionado extends Empregado
          * salário semanal = salário anual / 52
          * duas semanas = salário semanal * 2
          */
-        BigDecimal salarioFixo = getSalario().multiply(new BigDecimal("12")).divide(new BigDecimal("52"), 10, RoundingMode.HALF_UP).multiply(new BigDecimal("2")).setScale(2, RoundingMode.DOWN);
+        BigDecimal salarioFixo = calcularSalarioFixoQuinzenal();
         BigDecimal vendas = getVendasRealizadas(inicio, dataPagamento);
         BigDecimal valorComissao = vendas.multiply(getComissao()).setScale(2, RoundingMode.DOWN);
 
         return salarioFixo.add(valorComissao);
     }
+
+    private BigDecimal calcularSalarioFixoQuinzenal()
+    {
+        return getSalario().multiply(new BigDecimal("12")).divide(new BigDecimal("52"), 10, RoundingMode.HALF_UP).multiply(new BigDecimal("2")).setScale(2, RoundingMode.DOWN);
+    }
+
+    @Override
+    public RegistroPagamento gerarRegistro(LocalDate dataPagamento, ResultadoPagamento resultado)
+    {
+        LocalDate inicio = getInicioPeriodoAtual(dataPagamento);
+
+        BigDecimal salarioFixo = calcularSalarioFixoQuinzenal();
+        BigDecimal vendasRealizadas = getVendasRealizadas(inicio, dataPagamento);
+        BigDecimal valorComissao = vendasRealizadas.multiply(getComissao()).setScale(2, RoundingMode.DOWN);
+
+        return new RegistroComissionado(getNome(), getDescricaoMetodoPagamento(), resultado, salarioFixo, vendasRealizadas, valorComissao);
+    }
+
 }

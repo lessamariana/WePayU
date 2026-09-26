@@ -128,4 +128,15 @@ public class EmpregadoHorista extends Empregado
 
         return pagamentoNormal.add(pagamentoExtra);
     }
+
+    @Override
+    public RegistroPagamento gerarRegistro(LocalDate dataPagamento, ResultadoPagamento resultado) throws EmpregadoNaoEhHoristaException, DataInvalidaException
+    {
+        LocalDate inicio = getInicioPeriodoAtual(dataPagamento);
+
+        BigDecimal horasNormais = getHorasNormaisTrabalhadas(inicio, dataPagamento);
+        BigDecimal horasExtras = getHorasExtrasTrabalhadas(inicio, dataPagamento);
+
+        return new RegistroHorista(getNome(), getDescricaoMetodoPagamento(), resultado, horasNormais, horasExtras);
+    }
 }

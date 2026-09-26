@@ -1,51 +1,37 @@
-FOLHA DE PAGAMENTO
-Data: 11/2/2005
+FOLHA DE PAGAMENTO DO DIA 2005-02-11
+====================================
 
-Empregado: Fernanda Montenegro
-Salario bruto: 0,00
-Descontos: 0,00
-Salario liquido: 0,00
+===============================================================================================================================
+===================== HORISTAS ================================================================================================
+===============================================================================================================================
+Nome                                 Horas Extra Salario Bruto Descontos Salario Liquido Metodo
+==================================== ===== ===== ============= ========= =============== ======================================
+Claudia Abreu                            0     0          0,00      0,00            0,00 Em maos
+Claudia Raia                             0     0          0,00      0,00            0,00 Banco do Brasil, Ag. 1591-1 CC 51002-2
+Fernanda Montenegro                      0     0          0,00      0,00            0,00 Em maos
+Lavinia Vlasak                           0     0          0,00      0,00            0,00 Banco do Brasil, Ag. 1591-1 CC 51001-1
+Paloma Duarte                            0     0          0,00      0,00            0,00 Banco do Brasil, Ag. 1591-1 CC 51000-0
 
-Empregado: Paloma Duarte
-Salario bruto: 0,00
-Descontos: 0,00
-Salario liquido: 0,00
+TOTAL HORISTAS                           0     0          0,00      0,00            0,00
 
-Empregado: Lavinia Vlasak
-Salario bruto: 0,00
-Descontos: 0,00
-Salario liquido: 0,00
+===============================================================================================================================
+===================== ASSALARIADOS ============================================================================================
+===============================================================================================================================
+Nome                                             Salario Bruto Descontos Salario Liquido Metodo
+================================================ ============= ========= =============== ======================================
 
-Empregado: Claudia Abreu
-Salario bruto: 0,00
-Descontos: 7,00
-Salario liquido: 0,00
+TOTAL ASSALARIADOS                                        0,00      0,00            0,00
 
-Empregado: Claudia Raia
-Salario bruto: 0,00
-Descontos: 8,40
-Salario liquido: 0,00
+===============================================================================================================================
+===================== COMISSIONADOS ===========================================================================================
+===============================================================================================================================
+Nome                  Fixo     Vendas   Comissao Salario Bruto Descontos Salario Liquido Metodo
+===================== ======== ======== ======== ============= ========= =============== ======================================
+Ana Paula Arosio        646,15   623,10    74,77        720,92      0,00          720,92 Correios, end10
+Deborah Secco           600,00     0,00     0,00        600,00      0,00          600,00 Correios, end9
+Maite Proenca           738,46   623,10    87,23        825,69     14,00          811,69 Correios, end12
+Suzana Vieira           692,30   623,10    81,00        773,30     14,00          759,30 Correios, end11
 
-Empregado: Deborah Secco
-Salario bruto: 600,00
-Descontos: 0,00
-Salario liquido: 600,00
+TOTAL COMISSIONADOS    2676,91  1869,30   243,00       2919,91     28,00         2891,91
 
-Empregado: Ana Paula Arosio
-Salario bruto: 720,93
-Descontos: 0,00
-Salario liquido: 720,93
-
-Empregado: Suzana Vieira
-Salario bruto: 773,31
-Descontos: 14,00
-Salario liquido: 759,31
-
-Empregado: Maite Proenca
-Salario bruto: 825,70
-Descontos: 14,00
-Salario liquido: 811,70
-
-Total bruto: 2919,94
-Total descontos: 43,40
-Total liquido: 2891,94
+TOTAL FOLHA: 2919,91

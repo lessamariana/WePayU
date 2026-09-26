@@ -7,4 +7,11 @@ public class PagamentoEmMaos extends MetodoPagamento
     {
         return "emMaos";
     }
+
+    @Override
+    public String getDescricaoRecibo(String enderecoEmpregado)
+    {
+        return "Em maos";
+    }
+
 }

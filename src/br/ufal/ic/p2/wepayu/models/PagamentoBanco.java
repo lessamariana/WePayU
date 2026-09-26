@@ -55,4 +55,10 @@ public class PagamentoBanco extends MetodoPagamento
     {
         return contaCorrente;
     }
+
+    @Override
+    public String getDescricaoRecibo(String enderecoEmpregado)
+    {
+        return "Banco do Brasil, Ag. " + agencia + " CC " + contaCorrente;
+    }
 }

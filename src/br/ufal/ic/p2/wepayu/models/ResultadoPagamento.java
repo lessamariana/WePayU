@@ -17,17 +17,17 @@ public class ResultadoPagamento
 
     public ResultadoPagamento(BigDecimal salarioBruto, BigDecimal descontos)
     {
-        this.salarioBruto = salarioBruto.setScale(2, RoundingMode.HALF_UP);
-        this.descontos = descontos.setScale(2, RoundingMode.HALF_UP);
+        BigDecimal brutoArredondado = salarioBruto.setScale(2, RoundingMode.HALF_UP);
+        BigDecimal descontosArredondados = descontos.setScale(2, RoundingMode.HALF_UP);
 
-        BigDecimal liquido = salarioBruto.subtract(descontos);
-
-        if(liquido.compareTo(BigDecimal.ZERO) < 0)
+        if(descontosArredondados.compareTo(brutoArredondado) > 0)
         {
-            liquido = BigDecimal.ZERO;
+            descontosArredondados = brutoArredondado;
         }
 
-        this.salarioLiquido = liquido.setScale(2, RoundingMode.HALF_UP);
+        this.salarioBruto = brutoArredondado;
+        this.descontos = descontosArredondados;
+        this.salarioLiquido = brutoArredondado.subtract(descontosArredondados);
     }
 
     public BigDecimal getSalarioBruto()

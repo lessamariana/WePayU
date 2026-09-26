@@ -20,4 +20,6 @@ public abstract class MetodoPagamento
     {
         throw new EmpregadoNaoRecebeEmBancoException();
     }
+
+    public abstract String getDescricaoRecibo(String enderecoEmpregado);
 }

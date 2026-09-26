@@ -22,16 +22,7 @@ public class FolhaPagamento
 
         BigDecimal descontos = BigDecimal.ZERO;
 
-        LocalDate inicio;
-
-        if(empregado.getDataUltimoPagamento() == null)
-        {
-            inicio = empregado.getDataContratacao();
-        }
-        else
-        {
-            inicio = empregado.getDataUltimoPagamento().plusDays(1);
-        }
+        LocalDate inicio = empregado.getInicioPeriodoAtual(dataPagamento);
 
         if(empregado.participaSindicato())
         {
