@@ -7,6 +7,7 @@ import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoEhHoristaException;
 import br.ufal.ic.p2.wepayu.Exception.HorasInvalidaException;
 
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +36,11 @@ public class EmpregadoHorista extends Empregado
     @Override
     public void lancaCartao(LocalDate data, BigDecimal horas) throws EmpregadoNaoEhHoristaException, DataInvalidaException, HorasInvalidaException
     {
+        if (getDataContratacao() == null)
+        {
+            setDataContratacao(data);
+        }
+
         if(horas.compareTo(BigDecimal.ZERO) <= 0)
         {
             throw new HorasInvalidaException();
@@ -90,5 +96,35 @@ public class EmpregadoHorista extends Empregado
         }
 
         return total;
+    }
+
+    @Override
+    public boolean deveReceber(LocalDate dataPagamento)
+    {
+        // Horista recebe toda sexta-feira.
+        return dataPagamento.getDayOfWeek() == DayOfWeek.FRIDAY;
+    }
+
+    @Override
+    public BigDecimal calcularPagamento(LocalDate dataPagamento) throws EmpregadoNaoEhHoristaException, DataInvalidaException
+    {
+        LocalDate inicio;
+
+        if(getDataUltimoPagamento() == null)
+        {
+            /*O primeiro pagamento considera o período desde a contratação.*/
+            inicio = getDataContratacao();
+        }
+        else
+        {
+            inicio = getDataUltimoPagamento().plusDays(1);
+        }
+
+        BigDecimal horasNormais = getHorasNormaisTrabalhadas(inicio, dataPagamento);
+        BigDecimal horasExtras = getHorasExtrasTrabalhadas(inicio, dataPagamento);
+        BigDecimal pagamentoNormal = horasNormais.multiply(getSalario());
+        BigDecimal pagamentoExtra = horasExtras.multiply(getSalario()).multiply(new BigDecimal("1.5"));
+
+        return pagamentoNormal.add(pagamentoExtra);
     }
 }

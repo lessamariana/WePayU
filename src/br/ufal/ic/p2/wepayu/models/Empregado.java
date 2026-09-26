@@ -2,16 +2,13 @@
 
 package br.ufal.ic.p2.wepayu.models;
 
-import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoEhComissionadoException;
-import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoEhSindicalizadoException;
 import br.ufal.ic.p2.wepayu.Exception.AtributoNaoExisteException;
-import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoEhSindicalizadoException;
-import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoEhComissionadoException;
 import br.ufal.ic.p2.wepayu.Exception.DataInvalidaException;
+import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoEhComissionadoException;
 import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoEhHoristaException;
-import br.ufal.ic.p2.wepayu.Exception.HorasInvalidaException;
-import br.ufal.ic.p2.wepayu.Exception.AtributoNaoExisteException;
+import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoEhSindicalizadoException;
 import br.ufal.ic.p2.wepayu.Exception.EnderecoInvalidoException;
+import br.ufal.ic.p2.wepayu.Exception.HorasInvalidaException;
 import br.ufal.ic.p2.wepayu.Exception.NomeInvalidoException;
 import br.ufal.ic.p2.wepayu.Exception.SalarioInvalidoException;
 
@@ -34,6 +31,10 @@ public abstract class Empregado
 
     private final List<TaxaServico> taxasServico;
 
+    private LocalDate dataUltimoPagamento;
+    private LocalDate dataContratacao;
+
+
 
     /*Usei protected para as classes filhas conseguirem acessar
     * Tive que atualizar para us_5, mesma coisa em cima*/
@@ -53,13 +54,15 @@ public abstract class Empregado
         this.taxaSindical = BigDecimal.ZERO;
         this.taxasServico = new ArrayList<>();
         this.metodoPagamento = new PagamentoEmMaos();
+        this.dataContratacao = null;
+        this.dataUltimoPagamento = null;
     }
 
     /*Validações para verificar possíveis erros*/
 
     private void validarNome(String nome)
     {
-        if (nome == null || nome.isEmpty())
+        if(nome == null || nome.isEmpty())
         {
             throw new NomeInvalidoException();
         }
@@ -116,7 +119,7 @@ public abstract class Empregado
     public String getAtributo(String atributo)
     {
 
-        switch (atributo)
+        switch(atributo)
         {
             case "nome":
                 return nome;
@@ -261,12 +264,9 @@ public abstract class Empregado
 
     /*Registra a taxa de serviço. Só empregados sindicalizados recebem esse tipo de cobrança.*/
 
-    public void lancaTaxaServico(
-            LocalDate data,
-            BigDecimal valor)
-            throws EmpregadoNaoEhSindicalizadoException
+    public void lancaTaxaServico(LocalDate data, BigDecimal valor) throws EmpregadoNaoEhSindicalizadoException
     {
-        if (!sindicalizado)
+        if(!sindicalizado)
         {
             throw new EmpregadoNaoEhSindicalizadoException();
         }
@@ -345,6 +345,77 @@ public abstract class Empregado
 
         this.taxasServico.addAll(outro.taxasServico);
     }
+
+    //adicionei esse como abstract porque a us_7 quer calculos de pagamento diferentes para cada tipo de empregado, e também pagam em dias diferentes e coisas do tipo
+    // pesquisando vi que o abstract serve para estabelecer um contrato associado ao metodos
+    //como são jeitos diferentes, posso usar o abstract para separar os tipos diferentes e fazer do jeito que preciso, mas deixar como um só
+    public abstract BigDecimal calcularPagamento(LocalDate dataPagamento) throws EmpregadoNaoEhHoristaException, DataInvalidaException;
+    public abstract boolean deveReceber(LocalDate dataPagamento);
+
+    /*Retorna o valor das taxas de serviço que deve descontadas no pagamento. */
+
+    public BigDecimal calcularTaxasServico(LocalDate dataInicial, LocalDate dataPagamento)
+    {
+        BigDecimal total = BigDecimal.ZERO;
+
+        for(TaxaServico taxa : taxasServico)
+        {
+            LocalDate dataTaxa = taxa.getData();
+
+            if(!dataTaxa.isBefore(dataInicial) && !dataTaxa.isAfter(dataPagamento))
+            {
+                total = total.add(taxa.getValor());
+            }
+        }
+
+        return total;
+    }
+
+    //Na US7 a taxa sindical é tratada como um valor diário.
+
+    public BigDecimal calcularTaxaSindical(LocalDate dataInicial, LocalDate dataPagamento)
+    {
+        if(!sindicalizado)
+        {
+            return BigDecimal.ZERO;
+        }
+
+        if(dataInicial == null)
+        {
+            return BigDecimal.ZERO;
+        }
+
+        long dias = java.time.temporal.ChronoUnit.DAYS.between(dataInicial, dataPagamento) + 1;
+
+        if(dias < 0)
+        {
+            dias = 0;
+        }
+
+        return taxaSindical.multiply(BigDecimal.valueOf(dias));
+    }
+
+
+    public LocalDate getDataUltimoPagamento()
+    {
+        return dataUltimoPagamento;
+    }
+
+    public void setDataUltimoPagamento(LocalDate dataUltimoPagamento)
+    {
+        this.dataUltimoPagamento = dataUltimoPagamento;
+    }
+
+    public LocalDate getDataContratacao()
+    {
+        return dataContratacao;
+    }
+
+    public void setDataContratacao(LocalDate dataContratacao)
+    {
+        this.dataContratacao = dataContratacao;
+    }
+
 
 
 }

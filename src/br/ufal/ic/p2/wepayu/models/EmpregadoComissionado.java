@@ -4,9 +4,13 @@ import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoEhComissionadoException;
 import br.ufal.ic.p2.wepayu.Exception.ComissaoInvalidaException;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 
 /*Empregado que recebe salário + comissão*/
 
@@ -87,20 +91,59 @@ public class EmpregadoComissionado extends Empregado
     @Override
     public void alteraComissao(BigDecimal comissao)
     {
-        if (comissao == null)
+        if(comissao == null)
         {
-            throw new ComissaoInvalidaException(
-                    "Comissao nao pode ser nula."
-            );
+            throw new ComissaoInvalidaException("Comissao nao pode ser nula.");
         }
 
-        if (comissao.compareTo(BigDecimal.ZERO) < 0)
+        if(comissao.compareTo(BigDecimal.ZERO) < 0)
         {
-            throw new ComissaoInvalidaException(
-                    "Comissao deve ser nao-negativa."
-            );
+            throw new ComissaoInvalidaException("Comissao deve ser nao-negativa.");
         }
 
         this.comissao = comissao;
+    }
+
+    @Override
+    public boolean deveReceber(LocalDate dataPagamento)
+    {
+        if(dataPagamento.getDayOfWeek() != DayOfWeek.FRIDAY)
+        {
+            return false;
+        }
+
+        LocalDate contratacao = getDataContratacao();
+
+        long semanas = ChronoUnit.WEEKS.between(contratacao, dataPagamento);
+
+        return semanas % 2 == 1;
+    }
+
+    @Override
+    public BigDecimal calcularPagamento(LocalDate dataPagamento)
+    {
+        LocalDate inicio;
+
+        if(getDataUltimoPagamento() == null)
+        {
+            inicio = getDataContratacao();
+        }
+        else
+        {
+            inicio = getDataUltimoPagamento().plusDays(1);
+        }
+
+        /* O salário fixo do comissionado corresponde aduas semanas do salário mensal.
+         * salário anual = salário mensal * 12
+         * salário semanal = salário anual / 52
+         * duas semanas = salário semanal * 2
+         */
+        BigDecimal salarioFixo = getSalario().multiply(new BigDecimal("12")).divide(new BigDecimal("52"), 10, RoundingMode.HALF_UP).multiply(new BigDecimal("2"));
+
+        BigDecimal vendas = getVendasRealizadas(inicio, dataPagamento);
+
+        BigDecimal valorComissao = vendas.multiply(getComissao());
+
+        return salarioFixo.add(valorComissao);
     }
 }

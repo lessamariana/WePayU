@@ -26,6 +26,7 @@ import br.ufal.ic.p2.wepayu.Exception.ComissaoInvalidaException;
 import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoExisteException;
 import br.ufal.ic.p2.wepayu.Exception.IdentificacaoEmpregadoInvalidaException;
 import br.ufal.ic.p2.wepayu.Exception.SalarioInvalidoException;
+import br.ufal.ic.p2.wepayu.Exception.DataInvalidaException;
 
 import br.ufal.ic.p2.wepayu.models.Empregado;
 import br.ufal.ic.p2.wepayu.models.EmpregadoFactory;
@@ -34,7 +35,10 @@ import br.ufal.ic.p2.wepayu.models.MetodoPagamento;
 import br.ufal.ic.p2.wepayu.models.PagamentoEmMaos;
 import br.ufal.ic.p2.wepayu.models.PagamentoCorreios;
 import br.ufal.ic.p2.wepayu.models.PagamentoBanco;
+import br.ufal.ic.p2.wepayu.models.ResultadoPagamento;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.time.LocalDate;
 import java.math.BigDecimal;
 import java.util.LinkedHashMap; /* Estrutura de dados em pares, como uma lista encadeada */
@@ -686,6 +690,115 @@ public class Facade
         }
 
         throw new ValorBooleanoInvalidoException();
+    }
+
+    public String totalFolha(String data) throws DataInvalidaException, EmpregadoNaoEhHoristaException
+    {
+        LocalDate dataPagamento = DataTratamento.converterData(data, "Data invalida.");
+
+        BigDecimal total = BigDecimal.ZERO;
+
+        for(Empregado empregado : empregados.values())
+        {
+            if(empregado.deveReceber(dataPagamento))
+            {
+                ResultadoPagamento resultado = calcularResultadoPagamento(empregado, dataPagamento);
+                total = total.add(resultado.getSalarioBruto());
+            }
+        }
+
+        return formatarValor(total);
+    }
+
+    private ResultadoPagamento calcularResultadoPagamento(Empregado empregado, LocalDate dataPagamento) throws EmpregadoNaoEhHoristaException, DataInvalidaException
+    {
+        BigDecimal salarioBruto = empregado.calcularPagamento(dataPagamento);
+
+        BigDecimal descontos = BigDecimal.ZERO;
+
+        LocalDate inicio;
+
+        if(empregado.getDataUltimoPagamento() == null)
+        {
+            inicio = empregado.getDataContratacao();
+        }
+        else
+        {
+            inicio = empregado.getDataUltimoPagamento().plusDays(1);
+        }
+
+        if(empregado.participaSindicato())
+        {
+            descontos = descontos.add(empregado.calcularTaxaSindical(inicio, dataPagamento));
+        }
+
+        descontos = descontos.add(empregado.calcularTaxasServico(inicio, dataPagamento));
+
+        return new ResultadoPagamento(salarioBruto, descontos);
+    }
+
+    public void rodaFolha(String data, String saida) throws DataInvalidaException, EmpregadoNaoEhHoristaException
+    {
+        LocalDate dataPagamento = DataTratamento.converterData(data, "Data invalida.");
+
+        BigDecimal totalBruto = BigDecimal.ZERO;
+        BigDecimal totalDescontos = BigDecimal.ZERO;
+        BigDecimal totalLiquido = BigDecimal.ZERO;
+
+        List<Empregado> empregadosPagos = new ArrayList<>();
+        List<ResultadoPagamento> resultados = new ArrayList<>();
+
+        for(Empregado empregado : empregados.values())
+        {
+            if(empregado.deveReceber(dataPagamento))
+            {
+                ResultadoPagamento resultado = calcularResultadoPagamento(empregado, dataPagamento);
+
+                empregadosPagos.add(empregado);
+                resultados.add(resultado);
+
+                totalBruto = totalBruto.add(resultado.getSalarioBruto());
+                totalDescontos = totalDescontos.add(resultado.getDescontos());
+                totalLiquido = totalLiquido.add(resultado.getSalarioLiquido());
+            }
+        }
+
+        try
+        {
+            java.io.PrintWriter arquivo = new java.io.PrintWriter(saida);
+
+            arquivo.println("FOLHA DE PAGAMENTO");
+            arquivo.println("Data: " + data);
+            arquivo.println();
+
+            for(int i = 0; i < empregadosPagos.size(); i++)
+            {
+                Empregado empregado = empregadosPagos.get(i);
+                ResultadoPagamento resultado = resultados.get(i);
+
+                arquivo.println("Empregado: " + empregado.getNome());
+                arquivo.println("Salario bruto: " + formatarValor(resultado.getSalarioBruto()));
+                arquivo.println("Descontos: " + formatarValor(resultado.getDescontos()));
+                arquivo.println("Salario liquido: " + formatarValor(resultado.getSalarioLiquido()));
+                arquivo.println();
+            }
+
+            arquivo.println("Total bruto: " + formatarValor(totalBruto));
+            arquivo.println("Total descontos: " + formatarValor(totalDescontos));
+            arquivo.println("Total liquido: " + formatarValor(totalLiquido));
+
+            arquivo.close();
+        }
+        catch(java.io.FileNotFoundException e)
+        {
+            throw new RuntimeException(e);
+        }
+
+        // Só atualiza o último pagamento depois de gerar a folha.
+        for(Empregado empregado : empregadosPagos)
+        {
+            empregado.setDataUltimoPagamento(dataPagamento);
+        }
     }
 
 }
