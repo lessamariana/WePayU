@@ -138,11 +138,9 @@ public class EmpregadoComissionado extends Empregado
          * salário semanal = salário anual / 52
          * duas semanas = salário semanal * 2
          */
-        BigDecimal salarioFixo = getSalario().multiply(new BigDecimal("12")).divide(new BigDecimal("52"), 10, RoundingMode.HALF_UP).multiply(new BigDecimal("2"));
-
+        BigDecimal salarioFixo = getSalario().multiply(new BigDecimal("12")).divide(new BigDecimal("52"), 10, RoundingMode.HALF_UP).multiply(new BigDecimal("2")).setScale(2, RoundingMode.DOWN);
         BigDecimal vendas = getVendasRealizadas(inicio, dataPagamento);
-
-        BigDecimal valorComissao = vendas.multiply(getComissao());
+        BigDecimal valorComissao = vendas.multiply(getComissao()).setScale(2, RoundingMode.DOWN);
 
         return salarioFixo.add(valorComissao);
     }

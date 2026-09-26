@@ -1,0 +1,21 @@
+FOLHA DE PAGAMENTO
+Data: 31/1/2005
+
+Empregado: Natalia do Valle
+Salario bruto: 1000,00
+Descontos: 0,00
+Salario liquido: 1000,00
+
+Empregado: Regina Duarte
+Salario bruto: 1100,00
+Descontos: 31,00
+Salario liquido: 1069,00
+
+Empregado: Flavia Alessandra
+Salario bruto: 1200,00
+Descontos: 101,00
+Salario liquido: 1099,00
+
+Total bruto: 3300,00
+Total descontos: 132,00
+Total liquido: 3168,00

@@ -1,0 +1,51 @@
+FOLHA DE PAGAMENTO
+Data: 28/1/2005
+
+Empregado: Fernanda Montenegro
+Salario bruto: 0,00
+Descontos: 0,00
+Salario liquido: 0,00
+
+Empregado: Paloma Duarte
+Salario bruto: 0,00
+Descontos: 0,00
+Salario liquido: 0,00
+
+Empregado: Lavinia Vlasak
+Salario bruto: 0,00
+Descontos: 0,00
+Salario liquido: 0,00
+
+Empregado: Claudia Abreu
+Salario bruto: 0,00
+Descontos: 7,00
+Salario liquido: 0,00
+
+Empregado: Claudia Raia
+Salario bruto: 0,00
+Descontos: 8,40
+Salario liquido: 0,00
+
+Empregado: Deborah Secco
+Salario bruto: 600,00
+Descontos: 0,00
+Salario liquido: 600,00
+
+Empregado: Ana Paula Arosio
+Salario bruto: 646,15
+Descontos: 0,00
+Salario liquido: 646,15
+
+Empregado: Suzana Vieira
+Salario bruto: 692,31
+Descontos: 14,00
+Salario liquido: 678,31
+
+Empregado: Maite Proenca
+Salario bruto: 738,46
+Descontos: 14,00
+Salario liquido: 724,46
+
+Total bruto: 2676,92
+Total descontos: 43,40
+Total liquido: 2648,92

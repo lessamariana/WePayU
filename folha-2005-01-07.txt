@@ -1,0 +1,31 @@
+FOLHA DE PAGAMENTO
+Data: 7/1/2005
+
+Empregado: Fernanda Montenegro
+Salario bruto: 0,00
+Descontos: 0,00
+Salario liquido: 0,00
+
+Empregado: Paloma Duarte
+Salario bruto: 168,75
+Descontos: 0,00
+Salario liquido: 168,75
+
+Empregado: Lavinia Vlasak
+Salario bruto: 201,78
+Descontos: 0,00
+Salario liquido: 201,78
+
+Empregado: Claudia Abreu
+Salario bruto: 198,00
+Descontos: 7,00
+Salario liquido: 191,00
+
+Empregado: Claudia Raia
+Salario bruto: 180,00
+Descontos: 88,40
+Salario liquido: 91,60
+
+Total bruto: 748,53
+Total descontos: 95,40
+Total liquido: 653,13

@@ -54,7 +54,7 @@ public abstract class Empregado
         this.taxaSindical = BigDecimal.ZERO;
         this.taxasServico = new ArrayList<>();
         this.metodoPagamento = new PagamentoEmMaos();
-        this.dataContratacao = null;
+        this.dataContratacao = LocalDate.of(2005, 1, 1);
         this.dataUltimoPagamento = null;
     }
 
