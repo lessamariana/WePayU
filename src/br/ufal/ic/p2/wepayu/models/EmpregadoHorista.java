@@ -19,6 +19,7 @@ public class EmpregadoHorista extends Empregado
     public EmpregadoHorista(String nome, String endereco, BigDecimal salario)
     {
         super(nome, endereco, salario);
+        setDataContratacao(null);
     }
 
     /*Usei o override para sinalizar que pode substituir esse metodo na classe pai*/
@@ -36,14 +37,14 @@ public class EmpregadoHorista extends Empregado
     @Override
     public void lancaCartao(LocalDate data, BigDecimal horas) throws EmpregadoNaoEhHoristaException, DataInvalidaException, HorasInvalidaException
     {
-        if (getDataContratacao() == null)
-        {
-            setDataContratacao(data);
-        }
-
         if(horas.compareTo(BigDecimal.ZERO) <= 0)
         {
             throw new HorasInvalidaException();
+        }
+
+        if(getDataContratacao() == null)
+        {
+            setDataContratacao(data);
         }
 
         cartoesPonto.add(new CartaoPonto(data, horas));
