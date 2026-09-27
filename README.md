@@ -4,13 +4,15 @@ Sistema de folha de pagamento desenvolvido para a disciplina de **Programação 
 
 ## Informações acadêmicas
 
-* **Universidade:** Universidade Federal de Alagoas — UFAL
-* **Instituto:** Instituto de Computação
-* **Curso:** Ciência da Computação
-* **Disciplina:** Programação 2 — COMP372
-* **Professor:** Mario Hozano 
-* **Projeto:** WePayU
-* **Linguagem:** Java
+**Mariana Lessa - mlcs@ic.ufal.br**
+
+**Curso de **Ciência da Computação**
+
+**Instituto de Computação — UFAL **
+
+**Universidade Federal de Alagoas —** **UFAL**
+
+**Programação 2 com o Professor Mario Hozano**
 
 A disciplina de Programação 2 integra a matriz curricular do curso de Ciência da Computação da UFAL.
 
@@ -288,23 +290,3 @@ O projeto foi desenvolvido de forma incremental, implementando as funcionalidade
 A implementação foi organizada para preservar as funcionalidades anteriormente desenvolvidas enquanto novas funcionalidades eram adicionadas.
 
 ---
-
-# Autor
-
-**Mariana Lessa - mlcs@ic.ufal.br**
-
-Curso de **Ciência da Computação**
-
-Universidade Federal de Alagoas — **UFAL**
-
-Disciplina: **Programação 2**
-
-Professor: **Mario Hozano**
-
----
-
-## Repositório
-
-Projeto desenvolvido como atividade acadêmica da disciplina de Programação 2.
-
-**UFAL — Instituto de Computação**
