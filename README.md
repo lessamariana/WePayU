@@ -1,18 +1,18 @@
 # WePayU
 
-Sistema de folha de pagamento desenvolvido para a disciplina de **Programação 2** do curso de **Ciência da Computação da Universidade Federal de Alagoas (UFAL)**.
+Sistema de folha de pagamento desenvolvido para a disciplina de Programação 2 do curso de Ciência da Computação da Universidade Federal de Alagoas (UFAL).
 
 ## Informações acadêmicas
 
 **Mariana Lessa - mlcs@ic.ufal.br**
 
-**Curso de **Ciência da Computação**
+**Curso de Ciência da Computação**
 
-**Instituto de Computação — UFAL **
+**Instituto de Computação — UFAL**
 
-**Universidade Federal de Alagoas —** **UFAL**
+**Universidade Federal de Alagoas — UFAL**
 
-**Programação 2 com o Professor Mario Hozano**
+**Programação 2 (COMP372) com o Professor Mario Hozano**
 
 A disciplina de Programação 2 integra a matriz curricular do curso de Ciência da Computação da UFAL.
 
