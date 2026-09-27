@@ -139,4 +139,13 @@ public class EmpregadoHorista extends Empregado
 
         return new RegistroHorista(getNome(), getDescricaoMetodoPagamento(), resultado, horasNormais, horasExtras);
     }
+
+    @Override
+    public Empregado clonar()
+    {
+        EmpregadoHorista clone = new EmpregadoHorista(getNome(), getEndereco(), getSalario());
+        copiarCampos(clone);
+        clone.cartoesPonto = new ArrayList<>(this.cartoesPonto); // CartaoPonto não muda, só copiei
+        return clone;
+    }
 }

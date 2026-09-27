@@ -72,4 +72,12 @@ public class EmpregadoAssalariado extends Empregado
         return ultimoDia;
     }
 
+    @Override
+    public Empregado clonar()
+    {
+        EmpregadoAssalariado clone = new EmpregadoAssalariado(getNome(), getEndereco(), getSalario());
+        copiarCampos(clone);
+        return clone;
+    }
+
 }

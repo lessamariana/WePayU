@@ -162,4 +162,13 @@ public class EmpregadoComissionado extends Empregado
         return new RegistroComissionado(getNome(), getDescricaoMetodoPagamento(), resultado, salarioFixo, vendasRealizadas, valorComissao);
     }
 
+    @Override
+    public Empregado clonar()
+    {
+        EmpregadoComissionado clone = new EmpregadoComissionado(getNome(), getEndereco(), getSalario(), this.comissao);
+        copiarCampos(clone);
+        clone.vendas.addAll(this.vendas); // Venda é imutável, copiar a lista basta
+        return clone;
+    }
+
 }

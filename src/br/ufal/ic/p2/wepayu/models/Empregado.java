@@ -15,8 +15,7 @@ import br.ufal.ic.p2.wepayu.Exception.SalarioInvalidoException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public abstract class Empregado
 {
@@ -33,8 +32,6 @@ public abstract class Empregado
 
     private LocalDate dataUltimoPagamento;
     private LocalDate dataContratacao;
-
-
 
     /*Usei protected para as classes filhas conseguirem acessar
     * Tive que atualizar para us_5, mesma coisa em cima*/
@@ -435,4 +432,25 @@ public abstract class Empregado
     {
         return (getDataUltimoPagamento() == null) ? getDataContratacao() : getDataUltimoPagamento().plusDays(1);
     }
+
+    // Associados a us_8, metodos de cópia
+
+    public abstract Empregado clonar();
+
+    protected void copiarCampos(Empregado clone)
+    {
+        clone.nome = this.nome;
+        clone.endereco = this.endereco;
+        clone.salario = this.salario;
+        clone.sindicalizado = this.sindicalizado;
+        clone.idSindicato = this.idSindicato;
+        clone.taxaSindical = this.taxaSindical;
+        clone.metodoPagamento = this.metodoPagamento;
+        clone.taxasServico.clear();
+        clone.taxasServico.addAll(this.taxasServico); // TaxaServico não muda, então só copiei
+        clone.dataUltimoPagamento = this.dataUltimoPagamento;
+        clone.dataContratacao = this.dataContratacao;
+    }
+
+
 }

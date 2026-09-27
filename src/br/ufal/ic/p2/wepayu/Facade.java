@@ -1,48 +1,12 @@
 package br.ufal.ic.p2.wepayu;
 
-import br.ufal.ic.p2.wepayu.Exception.TipoNaoAplicavelException;
-import br.ufal.ic.p2.wepayu.Exception.TipoInvalidoException;
-import br.ufal.ic.p2.wepayu.Exception.AtributoNaoExisteException;
-import br.ufal.ic.p2.wepayu.Exception.IdentificacaoSindicatoInvalidaException;
-import br.ufal.ic.p2.wepayu.Exception.MetodoPagamentoInvalidoException;
-import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoRecebeEmBancoException;
-import br.ufal.ic.p2.wepayu.Exception.BancoInvalidoException;
-import br.ufal.ic.p2.wepayu.Exception.AgenciaInvalidaException;
-import br.ufal.ic.p2.wepayu.Exception.ContaCorrenteInvalidaException;
-import br.ufal.ic.p2.wepayu.Exception.TaxaSindicalNulaException;
-import br.ufal.ic.p2.wepayu.Exception.TaxaSindicalNaoNumericaException;
-import br.ufal.ic.p2.wepayu.Exception.TaxaSindicalNegativaException;
-import br.ufal.ic.p2.wepayu.Exception.ValorBooleanoInvalidoException;
-import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoEhSindicalizadoException;
-import br.ufal.ic.p2.wepayu.Exception.IdentificacaoMembroInvalidaException;
-import br.ufal.ic.p2.wepayu.Exception.IdentificacaoSindicatoJaExisteException;
-import br.ufal.ic.p2.wepayu.Exception.MembroNaoExisteException;
-import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoEhComissionadoException;
-import br.ufal.ic.p2.wepayu.Exception.ValorInvalidoException;
-import br.ufal.ic.p2.wepayu.Exception.DataInvalidaException;
-import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoEhHoristaException;
-import br.ufal.ic.p2.wepayu.Exception.HorasInvalidaException;
-import br.ufal.ic.p2.wepayu.Exception.ComissaoInvalidaException;
-import br.ufal.ic.p2.wepayu.Exception.EmpregadoNaoExisteException;
-import br.ufal.ic.p2.wepayu.Exception.IdentificacaoEmpregadoInvalidaException;
-import br.ufal.ic.p2.wepayu.Exception.SalarioInvalidoException;
-import br.ufal.ic.p2.wepayu.Exception.DataInvalidaException;
-import br.ufal.ic.p2.wepayu.Exception.ArquivoDeSaidaInvalidoException;
+import br.ufal.ic.p2.wepayu.Exception.*;
 
 
-import br.ufal.ic.p2.wepayu.models.Empregado;
-import br.ufal.ic.p2.wepayu.models.EmpregadoFactory;
-import br.ufal.ic.p2.wepayu.models.DataTratamento;
-import br.ufal.ic.p2.wepayu.models.MetodoPagamento;
-import br.ufal.ic.p2.wepayu.models.PagamentoEmMaos;
-import br.ufal.ic.p2.wepayu.models.PagamentoCorreios;
-import br.ufal.ic.p2.wepayu.models.PagamentoBanco;
-import br.ufal.ic.p2.wepayu.models.ResultadoPagamento;
-import br.ufal.ic.p2.wepayu.models.FolhaPagamento;
-import br.ufal.ic.p2.wepayu.models.RegistroPagamento;
-import br.ufal.ic.p2.wepayu.models.Formatador;
+import br.ufal.ic.p2.wepayu.models.*;
 
-
+import java.util.Deque;
+import java.util.ArrayDeque; // to usando pra fazer de forma dinamica, pesquisei e vi que é melhor que usar LinkedLista ou Stack
 import java.io.PrintWriter;
 import java.io.FileNotFoundException;
 import java.util.Comparator;
@@ -66,6 +30,10 @@ public class Facade
 
     private final EmpregadoFactory empregadoFactory;
 
+    private final Deque<Controle> pilhaDesfazer = new ArrayDeque<>();
+    private final Deque<Controle> pilhaRefazer = new ArrayDeque<>();
+    private boolean sistemaEncerrado = false;
+
     /* Criação de Identificador Único (iniciei em 1) para cada funcionário criado: Próximo número que será utilizado como identificador.*/
     private int proximoId;
 
@@ -81,33 +49,49 @@ public class Facade
 
     public void zerarSistema()
     {
+        verificarSistemaAtivo();
+
+        Map<String, Empregado> antes = clonarMapa(empregados);
+        int proximoIdAntes = proximoId;
+
         empregados.clear();
         membrosSindicato.clear();
         proximoId = 1;
+
+        Map<String, Empregado> depois = clonarMapa(empregados);
+
+        registrarComando(new ControleGlobal(empregados, antes, proximoIdAntes, depois, proximoId, novoValor -> proximoId = novoValor));
     }
 
     /*Cria horista ou CLT.*/
 
     public String criarEmpregado(String nome, String endereco, String tipo, String salario)
     {
+        verificarSistemaAtivo();
 
         BigDecimal salarioConvertido = converterSalario(salario);
         Empregado empregado = empregadoFactory.criar(nome, endereco, tipo, salarioConvertido);
 
-        return adicionarEmpregado(empregado);
-    }
+        int proximoIdAntes = proximoId;
+        String id = adicionarEmpregado(empregado);
 
-    /*Cria empregado com comissão.*/
+        registrarComandoEmpregado(id, null, proximoIdAntes);
+        return id;
+    }
 
     public String criarEmpregado(String nome, String endereco, String tipo, String salario, String comissao)
     {
+        verificarSistemaAtivo();
 
         BigDecimal salarioConvertido = converterSalario(salario);
         BigDecimal comissaoConvertida = converterComissao(comissao);
-
         Empregado empregado = empregadoFactory.criar(nome, endereco, tipo, salarioConvertido, comissaoConvertida);
 
-        return adicionarEmpregado(empregado);
+        int proximoIdAntes = proximoId;
+        String id = adicionarEmpregado(empregado);
+
+        registrarComandoEmpregado(id, null, proximoIdAntes);
+        return id;
     }
 
     /*Retorna um atributo do empregado.*/
@@ -115,11 +99,6 @@ public class Facade
     public String getAtributoEmpregado(String emp, String atributo) throws EmpregadoNaoExisteException
     {
         return buscarEmpregado(emp).getAtributo(atributo);
-    }
-
-    public void encerrarSistema()
-    {
-        // Coloquei para testar, não tá funcionando ainda.
     }
 
     /*Adicionar um empregado ao mapa e gerar seu o ID.*/
@@ -213,9 +192,10 @@ public class Facade
 
     public void removerEmpregado(String id) throws EmpregadoNaoExisteException, IdentificacaoEmpregadoInvalidaException
     {
-
         // Precisei ajustar pra verificar se o id foi informado
         // já que o teste da us_2 pede uma mensagem específica para esse caso.
+        //Atualizei para us_8
+        verificarSistemaAtivo();
 
         if (id == null || id.trim().isEmpty()) //verificando se a string tá vazia
         {
@@ -228,34 +208,45 @@ public class Facade
             throw new EmpregadoNaoExisteException();
         }
 
-        // Se passou pelas duas validações, remove o empregado.
+        Empregado antes = clonarSeExistir(id);
+        int proximoIdAntes = proximoId;
+
         empregados.remove(id);
+
+        registrarComandoEmpregado(id, antes, proximoIdAntes);
     }
 
     //Adicionando metodos para tratamento de cartoes de ponto pros testes de us_3
+    //Atualizado para us_8
 
     public void lancaCartao(String id, String data, String horas) throws EmpregadoNaoExisteException, IdentificacaoEmpregadoInvalidaException, EmpregadoNaoEhHoristaException, DataInvalidaException, HorasInvalidaException
     {
+        verificarSistemaAtivo();
+
         if(id == null || id.trim().isEmpty())
         {
             throw new IdentificacaoEmpregadoInvalidaException();
         }
 
         Empregado empregado = buscarEmpregado(id);
+        Empregado antes = empregado.clonar();
+        int proximoIdAntes = proximoId;
 
         LocalDate dataConvertida = DataTratamento.converterData(data, "Data invalida.");
 
         BigDecimal horasConvertidas;
-
         try
         {
             horasConvertidas = new BigDecimal(horas.replace(",", "."));
-        } catch (NumberFormatException e)
+        }
+        catch (NumberFormatException e)
         {
             throw new HorasInvalidaException();
         }
 
         empregado.lancaCartao(dataConvertida, horasConvertidas);
+
+        registrarComandoEmpregado(id, antes, proximoIdAntes);
     }
 
     //Estava usando BigDecimal, mas estava dando erro na formatação, então achei melhor mudar para String
@@ -314,23 +305,23 @@ public class Facade
     }
 
     /* Lança uma venda para um empregado.A venda só pode ser registrada para um empregado comissionado.*/
+    //Atualizado para us_8
     public void lancaVenda(String id, String data, String valor) throws EmpregadoNaoExisteException, IdentificacaoEmpregadoInvalidaException, EmpregadoNaoEhComissionadoException, DataInvalidaException, ValorInvalidoException
     {
-        // Verifica se o ID foi informado.
+        verificarSistemaAtivo();
+
         if(id == null || id.trim().isEmpty())
         {
             throw new IdentificacaoEmpregadoInvalidaException();
         }
 
-        // Procura o empregado.
         Empregado empregado = buscarEmpregado(id);
+        Empregado antes = empregado.clonar();
+        int proximoIdAntes = proximoId;
 
-        // Converte e valida a data.
         LocalDate dataConvertida = DataTratamento.converterData(data, "Data invalida.");
 
-        // Converte o valor informado para BigDecimal.
         BigDecimal valorConvertido;
-
         try
         {
             valorConvertido = new BigDecimal(valor.replace(",", "."));
@@ -340,14 +331,14 @@ public class Facade
             throw new ValorInvalidoException();
         }
 
-        // O valor da venda precisa ser positivo.
         if (valorConvertido.compareTo(BigDecimal.ZERO) <= 0)
         {
             throw new ValorInvalidoException();
         }
 
-        /* EmpregadoComissionado registra a venda. Outros tipos lançam EmpregadoNaoEhComissionadoException.*/
         empregado.lancaVenda(dataConvertida, valorConvertido);
+
+        registrarComandoEmpregado(id, antes, proximoIdAntes);
     }
 
     /*Retorna o total de vendas realizadas pelo empregadodentro do período informado. */
@@ -380,8 +371,11 @@ public class Facade
         return formatarValor(total);
     }
 
+    //Atualizado para us_8
     public void lancaTaxaServico(String membro, String data, String valor) throws IdentificacaoMembroInvalidaException, MembroNaoExisteException, DataInvalidaException, ValorInvalidoException
     {
+        verificarSistemaAtivo();
+
         if(membro == null || membro.trim().isEmpty())
         {
             throw new IdentificacaoMembroInvalidaException();
@@ -401,10 +395,12 @@ public class Facade
             throw new MembroNaoExisteException();
         }
 
+        Empregado antes = empregado.clonar();
+        int proximoIdAntes = proximoId;
+
         LocalDate dataConvertida = DataTratamento.converterData(data, "Data invalida.");
 
         BigDecimal valorConvertido;
-
         try
         {
             valorConvertido = new BigDecimal(valor.replace(",", "."));
@@ -420,6 +416,8 @@ public class Facade
         }
 
         empregado.lancaTaxaServico(dataConvertida, valorConvertido);
+
+        registrarComandoEmpregado(idEmpregado, antes, proximoIdAntes);
     }
 
     /*
@@ -527,65 +525,6 @@ public class Facade
         membrosSindicato.put(idSindicato, id);
     }
 
-    public void alteraEmpregado(String id, String atributo, String valor) throws EmpregadoNaoExisteException
-    {
-        Empregado empregado = buscarEmpregado(id);
-
-        if("nome".equals(atributo))
-        {
-            empregado.alteraNome(valor);
-            return;
-        }
-
-        if("endereco".equals(atributo))
-        {
-            empregado.alteraEndereco(valor);
-            return;
-        }
-
-        if("salario".equals(atributo))
-        {
-            empregado.alteraSalario(converterSalario(valor));
-            return;
-        }
-
-        if("tipo".equals(atributo))
-        {
-            alterarTipo(id, empregado, valor, null);
-            return;
-        }
-
-        if("comissao".equals(atributo))
-        {
-            empregado.alteraComissao(converterComissao(valor));
-            return;
-        }
-
-        if("metodoPagamento".equals(atributo))
-        {
-            alterarMetodoPagamento(empregado, valor);
-            return;
-        }
-
-        if("sindicalizado".equals(atributo))
-        {
-            if("false".equals(valor))
-            {
-                removerSindicalizacao(id, empregado);
-                return;
-            }
-
-            if("true".equals(valor))
-            {
-                throw new IdentificacaoSindicatoInvalidaException();
-            }
-
-            throw new ValorBooleanoInvalidoException();
-        }
-
-        throw new AtributoNaoExisteException();
-    }
-
     private void alterarMetodoPagamento(Empregado empregado, String valor)
     {
         if("emMaos".equals(valor))
@@ -640,66 +579,7 @@ public class Facade
         empregados.put(id, novoEmpregado);
     }
 
-    public void alteraEmpregado(String id, String atributo, String valor, String valorAdicional) throws EmpregadoNaoExisteException
-    {
-        Empregado empregado = buscarEmpregado(id);
-
-        if ("tipo".equals(atributo))
-        {
-            alterarTipo(id, empregado, valor, valorAdicional);
-            return;
-        }
-
-        throw new AtributoNaoExisteException();
-    }
-
     // sobrecarda de metodo pois precisa de parametros diferentes para us_6
-
-    public void alteraEmpregado(String id, String atributo, String valor1, String banco, String agencia, String contaCorrente) throws EmpregadoNaoExisteException
-    {
-        Empregado empregado = buscarEmpregado(id);
-
-        if("metodoPagamento".equals(atributo) && "banco".equals(valor1))
-        {
-            empregado.alteraMetodoPagamento(new PagamentoBanco(banco, agencia, contaCorrente));
-            return;
-        }
-
-        throw new MetodoPagamentoInvalidoException();
-    }
-
-    public void alteraEmpregado(String id, String atributo, String valor, String idSindicato, String taxaSindical) throws EmpregadoNaoExisteException
-    {
-        Empregado empregado = buscarEmpregado(id);
-
-        if(!"sindicalizado".equals(atributo))
-        {
-            throw new AtributoNaoExisteException();
-        }
-
-        if("true".equals(valor))
-        {
-            if(idSindicato == null || idSindicato.isEmpty())
-            {
-                throw new IdentificacaoSindicatoInvalidaException();
-            }
-
-            BigDecimal taxa = converterTaxaSindical(taxaSindical);
-
-            alterarSindicalizacao(id, empregado, idSindicato, taxa
-            );
-
-            return;
-        }
-
-        if ("false".equals(valor))
-        {
-            removerSindicalizacao(id, empregado);
-            return;
-        }
-
-        throw new ValorBooleanoInvalidoException();
-    }
 
     public String totalFolha(String data) throws DataInvalidaException, EmpregadoNaoEhHoristaException
     {
@@ -726,7 +606,12 @@ public class Facade
 
     public void rodaFolha(String data, String saida) throws DataInvalidaException, EmpregadoNaoEhHoristaException
     {
+        verificarSistemaAtivo();
+
         LocalDate dataPagamento = DataTratamento.converterData(data, "Data invalida.");
+        Map<String, Empregado> antes = clonarMapa(empregados);
+        int proximoIdAntes = proximoId;
+
         FolhaPagamento folha = new FolhaPagamento(dataPagamento);
 
         // Monta os registros de quem deve receber nesta data, e já separa quem teve pagamento efetivo (bruto > 0) de quem não teve.
@@ -777,6 +662,9 @@ public class Facade
         {
             empregado.setDataUltimoPagamento(dataPagamento);
         }
+
+        Map<String, Empregado> depois = clonarMapa(empregados);
+        registrarComando(new ControleGlobal(empregados, antes, proximoIdAntes, depois, proximoId, novoValor -> proximoId = novoValor));
     }
 
     private BigDecimal imprimirSecaoHoristas(PrintWriter arquivo, List<RegistroPagamento> registros)
@@ -874,6 +762,276 @@ public class Facade
         arquivo.printf("%-21s %8s %8s %8s %13s %9s %15s%n", "TOTAL COMISSIONADOS", Formatador.formatarValor(totalFixo), Formatador.formatarValor(totalVendas), Formatador.formatarValor(totalComissao), Formatador.formatarValor(totalBruto), Formatador.formatarValor(totalDescontos), Formatador.formatarValor(totalLiquido));
 
         return totalBruto;
+    }
+
+    //Ainda us_8 mas associado a questão das pilhas/filas organização
+
+    private void verificarSistemaAtivo()
+    {
+        if(sistemaEncerrado)
+        {
+            throw new SistemaEncerradoException();
+        }
+    }
+
+    private void registrarComando(Controle comando)
+    {
+        pilhaDesfazer.push(comando);
+        pilhaRefazer.clear();
+    }
+
+    private Empregado clonarSeExistir(String id)
+    {
+        Empregado empregado = empregados.get(id);
+        return (empregado == null) ? null : empregado.clonar();
+    }
+
+    // Monta e registra o ComandoEmpregado
+
+    private void registrarComandoEmpregado(String id, Empregado antes, int proximoIdAntes)
+    {
+        Empregado depois = clonarSeExistir(id);
+        registrarComando(new ControleEmpregado(empregados, id, antes, depois, proximoIdAntes, proximoId, novoValor -> proximoId = novoValor));
+    }
+
+    private Map<String, Empregado> clonarMapa(Map<String, Empregado> original)
+    {
+        Map<String, Empregado> copia = new LinkedHashMap<>();
+
+        for(Map.Entry<String, Empregado> entrada : original.entrySet())
+        {
+            copia.put(entrada.getKey(), entrada.getValue().clonar());
+        }
+
+        return copia;
+    }
+
+    private void reconstruirMembrosSindicato()
+    {
+        membrosSindicato.clear();
+
+        for(Map.Entry<String, Empregado> entrada : empregados.entrySet())
+        {
+            Empregado empregado = entrada.getValue();
+
+            if(empregado.participaSindicato())
+            {
+                membrosSindicato.put(empregado.getIdSindicato(), entrada.getKey());
+            }
+        }
+    }
+
+    public void undo()
+    {
+        verificarSistemaAtivo();
+
+        if(pilhaDesfazer.isEmpty())
+        {
+            throw new NenhumComandoException("Nao ha comando a desfazer.");
+        }
+
+        Controle comando = pilhaDesfazer.pop();
+        comando.desfazer();
+        reconstruirMembrosSindicato();
+        pilhaRefazer.push(comando);
+    }
+
+    public void redo()
+    {
+        verificarSistemaAtivo();
+
+        if(pilhaRefazer.isEmpty())
+        {
+            throw new NenhumComandoException("Nao ha comando a refazer.");
+        }
+
+        Controle comando = pilhaRefazer.pop();
+        comando.refazer();
+        reconstruirMembrosSindicato();
+        pilhaDesfazer.push(comando);
+    }
+
+    public int getNumeroDeEmpregados()
+    {
+        return empregados.size();
+    }
+
+    public String getEmpregadoPorNome(String nome, int indice) throws EmpregadoNaoExisteException
+    {
+        int alvo = indice - 1; // "indice" é 1-based no script de testes
+        int contador = 0;
+
+        for(Map.Entry<String, Empregado> entrada : empregados.entrySet())
+        {
+            if(entrada.getValue().getNome().equals(nome))
+            {
+                if(contador == alvo)
+                {
+                    return entrada.getKey();
+                }
+
+                contador++;
+            }
+        }
+
+        throw new EmpregadoNaoExisteException();
+    }
+
+    public void encerrarSistema()
+    {
+        sistemaEncerrado = true;
+    }
+
+    //Sobrecarga de método
+
+
+    //Tive que usar sobrecarda de metodo e alteraEmpregado ficou meio espalhado, então centralizei aqui
+
+    public void alteraEmpregado(String id, String atributo, String valor) throws EmpregadoNaoExisteException
+    {
+        verificarSistemaAtivo();
+
+        Empregado empregado = buscarEmpregado(id);
+        Empregado antes = empregado.clonar();
+        int proximoIdAntes = proximoId;
+
+        aplicarAlteracaoSimples(id, empregado, atributo, valor);
+
+        registrarComandoEmpregado(id, antes, proximoIdAntes);
+    }
+
+    private void aplicarAlteracaoSimples(String id, Empregado empregado, String atributo, String valor)
+    {
+        if("nome".equals(atributo))
+        {
+            empregado.alteraNome(valor);
+            return;
+        }
+
+        if("endereco".equals(atributo))
+        {
+            empregado.alteraEndereco(valor);
+            return;
+        }
+
+        if("salario".equals(atributo))
+        {
+            empregado.alteraSalario(converterSalario(valor));
+            return;
+        }
+
+        if("tipo".equals(atributo))
+        {
+            alterarTipo(id, empregado, valor, null);
+            return;
+        }
+
+        if("comissao".equals(atributo))
+        {
+            empregado.alteraComissao(converterComissao(valor));
+            return;
+        }
+
+        if("metodoPagamento".equals(atributo))
+        {
+            alterarMetodoPagamento(empregado, valor);
+            return;
+        }
+
+        if("sindicalizado".equals(atributo))
+        {
+            if("false".equals(valor))
+            {
+                removerSindicalizacao(id, empregado);
+                return;
+            }
+
+            if("true".equals(valor))
+            {
+                throw new IdentificacaoSindicatoInvalidaException();
+            }
+
+            throw new ValorBooleanoInvalidoException();
+        }
+
+        throw new AtributoNaoExisteException();
+    }
+
+    public void alteraEmpregado(String id, String atributo, String valor, String valorAdicional) throws EmpregadoNaoExisteException
+    {
+        verificarSistemaAtivo();
+
+        Empregado empregado = buscarEmpregado(id);
+        Empregado antes = empregado.clonar();
+        int proximoIdAntes = proximoId;
+
+        if (!"tipo".equals(atributo))
+        {
+            throw new AtributoNaoExisteException();
+        }
+
+        alterarTipo(id, empregado, valor, valorAdicional);
+
+        registrarComandoEmpregado(id, antes, proximoIdAntes);
+    }
+
+    public void alteraEmpregado(String id, String atributo, String valor1, String banco, String agencia, String contaCorrente) throws EmpregadoNaoExisteException
+    {
+        verificarSistemaAtivo();
+
+        Empregado empregado = buscarEmpregado(id);
+        Empregado antes = empregado.clonar();
+        int proximoIdAntes = proximoId;
+
+        if(!("metodoPagamento".equals(atributo) && "banco".equals(valor1)))
+        {
+            throw new MetodoPagamentoInvalidoException();
+        }
+
+        empregado.alteraMetodoPagamento(new PagamentoBanco(banco, agencia, contaCorrente));
+
+        registrarComandoEmpregado(id, antes, proximoIdAntes);
+    }
+
+    public void alteraEmpregado(String id, String atributo, String valor, String idSindicato, String taxaSindical) throws EmpregadoNaoExisteException
+    {
+        verificarSistemaAtivo();
+
+        Empregado empregado = buscarEmpregado(id);
+        Empregado antes = empregado.clonar();
+        int proximoIdAntes = proximoId;
+
+        aplicarAlteracaoSindicalizacao(id, empregado, atributo, valor, idSindicato, taxaSindical);
+
+        registrarComandoEmpregado(id, antes, proximoIdAntes);
+    }
+
+    private void aplicarAlteracaoSindicalizacao(String id, Empregado empregado, String atributo, String valor, String idSindicato, String taxaSindical)
+    {
+        if(!"sindicalizado".equals(atributo))
+        {
+            throw new AtributoNaoExisteException();
+        }
+
+        if("true".equals(valor))
+        {
+            if(idSindicato == null || idSindicato.isEmpty())
+            {
+                throw new IdentificacaoSindicatoInvalidaException();
+            }
+
+            BigDecimal taxa = converterTaxaSindical(taxaSindical);
+            alterarSindicalizacao(id, empregado, idSindicato, taxa);
+            return;
+        }
+
+        if ("false".equals(valor))
+        {
+            removerSindicalizacao(id, empregado);
+            return;
+        }
+
+        throw new ValorBooleanoInvalidoException();
     }
 
 }
