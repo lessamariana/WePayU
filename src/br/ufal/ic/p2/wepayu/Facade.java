@@ -43,6 +43,33 @@ public class Facade
         membrosSindicato = new LinkedHashMap<>();
         empregadoFactory = new EmpregadoFactory();
         proximoId = 1;
+
+        carregarPersistencia();
+    }
+
+    private void carregarPersistencia()
+    {
+    // Tenta ler o arquivo XML.
+
+        Persistencia.DadosSistema dados = Persistencia.carregar();
+
+    // Se não existe arquivo ainda, começa com o sistema vazio
+
+        if(dados == null)
+        {
+            return;
+        }
+
+        empregados.clear();
+
+        for(Persistencia.DadosEmpregado dadosEmpregado : dados.getEmpregados())
+        {
+            Empregado empregado = Persistencia.criarEmpregado(dadosEmpregado, empregadoFactory);
+            empregados.put(dadosEmpregado.getId(), empregado);
+        }
+
+        proximoId = dados.getProximoId();
+        reconstruirMembrosSindicato();
     }
 
     /* Limpa o sistema e reinicia a geração dos IDs.*/
@@ -874,11 +901,13 @@ public class Facade
             }
         }
 
-        throw new EmpregadoNaoExisteException();
+        throw new EmpregadoNaoExistePorNomeException();
     }
 
     public void encerrarSistema()
     {
+        Persistencia.salvar(empregados, proximoId);
+
         sistemaEncerrado = true;
     }
 

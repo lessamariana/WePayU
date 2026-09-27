@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<java version="21.0.12.1" class="java.beans.XMLDecoder">
+ <object class="br.ufal.ic.p2.wepayu.Persistencia$DadosSistema" id="Persistencia$DadosSistema0">
+  <void property="empregados">
+   <void method="add">
+    <object class="br.ufal.ic.p2.wepayu.Persistencia$DadosEmpregado">
+     <void property="comissao">
+      <string>0.05</string>
+     </void>
+     <void property="dataContratacao">
+      <string>2005-01-01</string>
+     </void>
+     <void property="endereco">
+      <string>Rua dos Bufoes, 333 - Campina Grande</string>
+     </void>
+     <void property="id">
+      <string>2</string>
+     </void>
+     <void property="metodoPagamento">
+      <string>emMaos</string>
+     </void>
+     <void property="nome">
+      <string>Gaiato Vendedor</string>
+     </void>
+     <void property="salario">
+      <string>2300.00</string>
+     </void>
+     <void property="taxaSindical">
+      <string>0</string>
+     </void>
+     <void property="tipo">
+      <string>comissionado</string>
+     </void>
+    </object>
+   </void>
+  </void>
+  <void property="proximoId">
+   <int>3</int>
+  </void>
+ </object>
+</java>

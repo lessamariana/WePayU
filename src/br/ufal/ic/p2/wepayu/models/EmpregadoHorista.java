@@ -35,6 +35,12 @@ public class EmpregadoHorista extends Empregado
     private List<CartaoPonto> cartoesPonto = new ArrayList<>();
 
     @Override
+    public List<CartaoPonto> getCartoesPontoPersistencia()
+    {
+        return cartoesPonto;
+    }
+
+    @Override
     public void lancaCartao(LocalDate data, BigDecimal horas) throws EmpregadoNaoEhHoristaException, DataInvalidaException, HorasInvalidaException
     {
         if(horas.compareTo(BigDecimal.ZERO) <= 0)

@@ -35,6 +35,18 @@ public class EmpregadoComissionado extends Empregado
         return comissao;
     }
 
+    @Override
+    public String getComissaoPersistencia()
+    {
+        return comissao.toString();
+    }
+
+    @Override
+    public List<Venda> getVendasPersistencia()
+    {
+        return vendas;
+    }
+
     /*Usei o override para sinalizar que pode substituir esse metodo na classe pai*/
     /*Achei relevante por ser POO, então estou tentando usar esse conceito de polimorfismo*/
     /*As classe filhas tem que responder por conta própria*/
@@ -64,11 +76,7 @@ public class EmpregadoComissionado extends Empregado
         vendas.add(new Venda(data, valor));
     }
 
-    /*
-     * Soma as vendas realizadas dentro do intervalo.
-     * A data inicial é incluída.
-     * A data final não é incluída.
-     */
+    /* Soma as vendas realizadas dentro do intervalo. A data inicial é incluída.A data final não é incluída. */
 
     @Override
     public BigDecimal getVendasRealizadas(LocalDate dataInicial, LocalDate dataFinal)

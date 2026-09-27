@@ -299,6 +299,28 @@ public abstract class Empregado
         return metodoPagamento.getTipo();
     }
 
+    /* Métodos usados pela persistência, a classe pai fornece as estruturas comuns e as subclasses sobrescrevem os métodos relacionadosaos seus dados específicos.*/
+
+    public List<TaxaServico> getTaxasServicoPersistencia()
+    {
+        return taxasServico;
+    }
+
+    public List<CartaoPonto> getCartoesPontoPersistencia()
+    {
+        return Collections.emptyList();
+    }
+
+    public List<Venda> getVendasPersistencia()
+    {
+        return Collections.emptyList();
+    }
+
+    public String getComissaoPersistencia()
+    {
+        return null;
+    }
+
     // Metodos para permitir edição de atributos que podem ser alterados
     public void alteraNome(String nome)
     {
