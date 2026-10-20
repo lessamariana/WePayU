@@ -27,6 +27,7 @@ public abstract class Empregado
     private String idSindicato;
     private BigDecimal taxaSindical;
     private MetodoPagamento metodoPagamento;
+    private AgendaPagamento agendaPagamento;
 
     private final List<TaxaServico> taxasServico;
 
@@ -103,6 +104,47 @@ public abstract class Empregado
         return sindicalizado;
     }
 
+    //
+    // Retorna a descrição da agenda de pagamento
+
+    public String getAgendaPagamento()
+    {
+        return agendaPagamento.getDescricao();
+    }
+
+    // Define a agenda de pagamento
+
+    public void alteraAgendaPagamento(String descricao)
+    {
+        this.agendaPagamento.setDescricao(descricao);
+    }
+
+    //Inicializa a agenda padrão
+
+    protected void definirAgendaPagamentoPadrao(String descricao)
+    {
+        this.agendaPagamento = new AgendaPagamento(descricao);
+    }
+
+    protected boolean deveReceberPelaAgenda(LocalDate dataPagamento)
+    {
+        return agendaPagamento.deveReceber(
+                dataPagamento, getDataContratacao()
+        );
+    }
+
+    protected BigDecimal calcularSalarioFixoPorAgenda()
+    {
+        if(agendaPagamento.isMensal())
+        {
+            return getSalario();
+        }
+
+        int semanas = agendaPagamento.getQuantidadeSemanas();
+
+        return getSalario().multiply(BigDecimal.valueOf(12)).divide(BigDecimal.valueOf(52), 10, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(semanas)).setScale(2, RoundingMode.DOWN);
+    }
+
 
     /*Define o tipo de empregado, já que tem tipos diferentes*/
 
@@ -132,6 +174,9 @@ public abstract class Empregado
 
             case "sindicalizado":
                 return String.valueOf(sindicalizado);
+
+            case "agendaPagamento":
+                return getAgendaPagamento();
 
             default:
                 return getAtributoEspecifico(atributo);
@@ -358,6 +403,8 @@ public abstract class Empregado
         this.taxaSindical = outro.taxaSindical;
 
         this.taxasServico.addAll(outro.taxasServico);
+
+        this.agendaPagamento = new AgendaPagamento(outro.agendaPagamento.getDescricao());
     }
 
     //adicionei esse como abstract porque a us_7 quer calculos de pagamento diferentes para cada tipo de empregado, e também pagam em dias diferentes e coisas do tipo
@@ -450,9 +497,24 @@ public abstract class Empregado
         return resultado.getSalarioBruto().compareTo(BigDecimal.ZERO) > 0;
     }
 
+
+
     public LocalDate getInicioPeriodoAtual(LocalDate dataPagamento)
     {
-        return (getDataUltimoPagamento() == null) ? getDataContratacao() : getDataUltimoPagamento().plusDays(1);
+        LocalDate ultimoPagamento = getDataUltimoPagamento();
+
+        if(ultimoPagamento != null)
+        {
+            // Recalcula o mesmo período se a folha for executada novamente para a mesma data
+            if(ultimoPagamento.equals(dataPagamento))
+            {
+                return agendaPagamento.getInicioPeriodo(dataPagamento, getDataContratacao());
+            }
+
+            return ultimoPagamento.plusDays(1);
+        }
+
+        return agendaPagamento.getInicioPeriodo(dataPagamento, getDataContratacao());
     }
 
     // Associados a us_8, metodos de cópia
@@ -472,6 +534,7 @@ public abstract class Empregado
         clone.taxasServico.addAll(this.taxasServico); // TaxaServico não muda, então só copiei
         clone.dataUltimoPagamento = this.dataUltimoPagamento;
         clone.dataContratacao = this.dataContratacao;
+        clone.agendaPagamento = new AgendaPagamento(this.agendaPagamento.getDescricao());
     }
 
 

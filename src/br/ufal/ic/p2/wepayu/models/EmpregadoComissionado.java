@@ -28,6 +28,8 @@ public class EmpregadoComissionado extends Empregado
 
         // Inicializa a lista de vendas vazia.
         this.vendas = new ArrayList<>();
+
+        definirAgendaPagamentoPadrao("semanal 2 5");
     }
 
     public BigDecimal getComissao()
@@ -115,39 +117,18 @@ public class EmpregadoComissionado extends Empregado
     @Override
     public boolean deveReceber(LocalDate dataPagamento)
     {
-        if(dataPagamento.getDayOfWeek() != DayOfWeek.FRIDAY)
-        {
-            return false;
-        }
-
-        LocalDate contratacao = getDataContratacao();
-
-        long semanas = ChronoUnit.WEEKS.between(contratacao, dataPagamento);
-
-        return semanas % 2 == 1;
+        return deveReceberPelaAgenda(dataPagamento);
     }
 
     @Override
     public BigDecimal calcularPagamento(LocalDate dataPagamento)
     {
-        LocalDate inicio;
+        LocalDate inicio = getInicioPeriodoAtual(dataPagamento);
 
-        if(getDataUltimoPagamento() == null)
-        {
-            inicio = getDataContratacao();
-        }
-        else
-        {
-            inicio = getDataUltimoPagamento().plusDays(1);
-        }
+        BigDecimal salarioFixo = calcularSalarioFixoPorAgenda();
 
-        /* O salário fixo do comissionado corresponde aduas semanas do salário mensal.
-         * salário anual = salário mensal * 12
-         * salário semanal = salário anual / 52
-         * duas semanas = salário semanal * 2
-         */
-        BigDecimal salarioFixo = calcularSalarioFixoQuinzenal();
         BigDecimal vendas = getVendasRealizadas(inicio, dataPagamento);
+
         BigDecimal valorComissao = vendas.multiply(getComissao()).setScale(2, RoundingMode.DOWN);
 
         return salarioFixo.add(valorComissao);
@@ -163,8 +144,10 @@ public class EmpregadoComissionado extends Empregado
     {
         LocalDate inicio = getInicioPeriodoAtual(dataPagamento);
 
-        BigDecimal salarioFixo = calcularSalarioFixoQuinzenal();
+        BigDecimal salarioFixo = calcularSalarioFixoPorAgenda();
+
         BigDecimal vendasRealizadas = getVendasRealizadas(inicio, dataPagamento);
+
         BigDecimal valorComissao = vendasRealizadas.multiply(getComissao()).setScale(2, RoundingMode.DOWN);
 
         return new RegistroComissionado(getNome(), getDescricaoMetodoPagamento(), resultado, salarioFixo, vendasRealizadas, valorComissao);

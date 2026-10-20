@@ -20,6 +20,7 @@ public class EmpregadoHorista extends Empregado
     {
         super(nome, endereco, salario);
         setDataContratacao(null);
+        definirAgendaPagamentoPadrao("semanal 5");
     }
 
     /*Usei o override para sinalizar que pode substituir esse metodo na classe pai*/
@@ -108,28 +109,20 @@ public class EmpregadoHorista extends Empregado
     @Override
     public boolean deveReceber(LocalDate dataPagamento)
     {
-        // Horista recebe toda sexta-feira.
-        return dataPagamento.getDayOfWeek() == DayOfWeek.FRIDAY;
+        return deveReceberPelaAgenda(dataPagamento);
     }
 
     @Override
     public BigDecimal calcularPagamento(LocalDate dataPagamento) throws EmpregadoNaoEhHoristaException, DataInvalidaException
     {
-        LocalDate inicio;
-
-        if(getDataUltimoPagamento() == null)
-        {
-            /*O primeiro pagamento considera o período desde a contratação.*/
-            inicio = getDataContratacao();
-        }
-        else
-        {
-            inicio = getDataUltimoPagamento().plusDays(1);
-        }
+        LocalDate inicio = getInicioPeriodoAtual(dataPagamento);
 
         BigDecimal horasNormais = getHorasNormaisTrabalhadas(inicio, dataPagamento);
+
         BigDecimal horasExtras = getHorasExtrasTrabalhadas(inicio, dataPagamento);
+
         BigDecimal pagamentoNormal = horasNormais.multiply(getSalario());
+
         BigDecimal pagamentoExtra = horasExtras.multiply(getSalario()).multiply(new BigDecimal("1.5"));
 
         return pagamentoNormal.add(pagamentoExtra);

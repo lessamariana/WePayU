@@ -983,7 +983,25 @@ public class Facade
             throw new ValorBooleanoInvalidoException();
         }
 
+        if("agendaPagamento".equals(atributo))
+        {
+            alterarAgendaPagamento(empregado, valor);
+            return;
+        }
+
         throw new AtributoNaoExisteException();
+    }
+
+    //Altera a agenda quando ela está entre as três opções
+
+    private void alterarAgendaPagamento(Empregado empregado, String descricao)
+    {
+        if(!"semanal 5".equals(descricao) && !"mensal $".equals(descricao) && !"semanal 2 5".equals(descricao))
+        {
+            throw new AgendaPagamentoNaoDisponivelException();
+        }
+
+        empregado.alteraAgendaPagamento(descricao);
     }
 
     public void alteraEmpregado(String id, String atributo, String valor, String valorAdicional) throws EmpregadoNaoExisteException

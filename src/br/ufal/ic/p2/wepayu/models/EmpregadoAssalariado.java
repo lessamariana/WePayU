@@ -12,6 +12,7 @@ public class EmpregadoAssalariado extends Empregado
     public EmpregadoAssalariado(String nome, String endereco, BigDecimal salario)
     {
         super(nome, endereco, salario);
+        definirAgendaPagamentoPadrao("mensal $");
     }
 
     /*Usei o override para sinalizar que pode substituir esse metodo na classe pai*/
@@ -26,24 +27,13 @@ public class EmpregadoAssalariado extends Empregado
     @Override
     public boolean deveReceber(LocalDate dataPagamento)
     {
-        LocalDate ultimoDia =
-                dataPagamento.with(TemporalAdjusters.lastDayOfMonth());
-
-        while (
-                ultimoDia.getDayOfWeek() == DayOfWeek.SATURDAY ||
-                        ultimoDia.getDayOfWeek() == DayOfWeek.SUNDAY
-        )
-        {
-            ultimoDia = ultimoDia.minusDays(1);
-        }
-
-        return dataPagamento.equals(ultimoDia);
+        return deveReceberPelaAgenda(dataPagamento);
     }
 
     @Override
     public BigDecimal calcularPagamento(LocalDate dataPagamento)
     {
-        return getSalario();
+        return calcularSalarioFixoPorAgenda();
     }
 
     @Override
@@ -55,21 +45,7 @@ public class EmpregadoAssalariado extends Empregado
     @Override
     public LocalDate getInicioPeriodoAtual(LocalDate dataPagamento)
     {
-        LocalDate inicio = ultimoDiaUtilDoMesAnterior(dataPagamento).plusDays(1);
-
-        return inicio.isBefore(getDataContratacao()) ? getDataContratacao() : inicio;
-    }
-
-    private LocalDate ultimoDiaUtilDoMesAnterior(LocalDate dataPagamento)
-    {
-        LocalDate ultimoDia = dataPagamento.minusMonths(1).with(TemporalAdjusters.lastDayOfMonth());
-
-        while(ultimoDia.getDayOfWeek() == DayOfWeek.SATURDAY || ultimoDia.getDayOfWeek() == DayOfWeek.SUNDAY)
-        {
-            ultimoDia = ultimoDia.minusDays(1);
-        }
-
-        return ultimoDia;
+        return super.getInicioPeriodoAtual(dataPagamento);
     }
 
     @Override
