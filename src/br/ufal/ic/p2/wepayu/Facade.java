@@ -33,6 +33,7 @@ public class Facade
     private final Deque<Controle> pilhaDesfazer = new ArrayDeque<>();
     private final Deque<Controle> pilhaRefazer = new ArrayDeque<>();
     private boolean sistemaEncerrado = false;
+    private final Map<String, AgendaPagamento> agendasPagamento;
 
     /* Criação de Identificador Único (iniciei em 1) para cada funcionário criado: Próximo número que será utilizado como identificador.*/
     private int proximoId;
@@ -42,8 +43,10 @@ public class Facade
         empregados = new LinkedHashMap<>();
         membrosSindicato = new LinkedHashMap<>();
         empregadoFactory = new EmpregadoFactory();
+        agendasPagamento = new LinkedHashMap<>();
         proximoId = 1;
 
+        registrarAgendasPadrao();
         carregarPersistencia();
     }
 
@@ -72,6 +75,33 @@ public class Facade
         reconstruirMembrosSindicato();
     }
 
+    // Registra as três agendas padão
+
+    private void registrarAgendasPadrao()
+    {
+        agendasPagamento.put("semanal 5", new AgendaPagamento("semanal 5"));
+
+        agendasPagamento.put("mensal $", new AgendaPagamento("mensal $"));
+
+        agendasPagamento.put("semanal 2 5", new AgendaPagamento("semanal 2 5"));
+    }
+
+    // Cadastra uma nova agenda de pagamento
+
+    public void criarAgendaDePagamentos(String descricao)
+    {
+        verificarSistemaAtivo();
+
+        AgendaPagamento.validarDescricao(descricao);
+
+        if(agendasPagamento.containsKey(descricao))
+        {
+            throw new AgendaPagamentosJaExisteException();
+        }
+
+        agendasPagamento.put(descricao, new AgendaPagamento(descricao));
+    }
+
     /* Limpa o sistema e reinicia a geração dos IDs.*/
 
     public void zerarSistema()
@@ -83,10 +113,11 @@ public class Facade
 
         empregados.clear();
         membrosSindicato.clear();
+        agendasPagamento.clear();
         proximoId = 1;
 
         Map<String, Empregado> depois = clonarMapa(empregados);
-
+        registrarAgendasPadrao();
         registrarComando(new ControleGlobal(empregados, antes, proximoIdAntes, depois, proximoId, novoValor -> proximoId = novoValor));
     }
 
@@ -996,7 +1027,7 @@ public class Facade
 
     private void alterarAgendaPagamento(Empregado empregado, String descricao)
     {
-        if(!"semanal 5".equals(descricao) && !"mensal $".equals(descricao) && !"semanal 2 5".equals(descricao))
+        if(!agendasPagamento.containsKey(descricao))
         {
             throw new AgendaPagamentoNaoDisponivelException();
         }

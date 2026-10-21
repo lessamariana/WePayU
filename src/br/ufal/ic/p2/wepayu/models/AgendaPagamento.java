@@ -1,5 +1,6 @@
 
 package br.ufal.ic.p2.wepayu.models;
+import br.ufal.ic.p2.wepayu.Exception.DescricaoAgendaInvalidaException;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -14,6 +15,7 @@ public class AgendaPagamento
 
     public AgendaPagamento(String descricao)
     {
+        validarDescricao(descricao);
         this.descricao = descricao;
     }
 
@@ -24,7 +26,82 @@ public class AgendaPagamento
 
     public void setDescricao(String descricao)
     {
+        validarDescricao(descricao);
         this.descricao = descricao;
+    }
+
+    public static void validarDescricao(String descricao)
+    {
+        if(descricao == null || descricao.trim().isEmpty())
+        {
+            throw new DescricaoAgendaInvalidaException();
+        }
+
+        String[] partes = descricao.trim().split("\\s+");
+
+        if("mensal".equals(partes[0]))
+        {
+            if(partes.length != 2)
+            {
+                throw new DescricaoAgendaInvalidaException();
+            }
+
+            if("$".equals(partes[1]))
+            {
+                return;
+            }
+
+            try
+            {
+                int dia = Integer.parseInt(partes[1]);
+
+                if(dia >= 1 && dia <= 28)
+                {
+                    return;
+                }
+            }
+            catch(NumberFormatException e)
+            {
+                throw new DescricaoAgendaInvalidaException();
+            }
+
+            throw new DescricaoAgendaInvalidaException();
+        }
+
+        if("semanal".equals(partes[0]))
+        {
+            if(partes.length == 2)
+            {
+                validarNumero(partes[1], 1, 7);
+                return;
+            }
+
+            if(partes.length == 3)
+            {
+                validarNumero(partes[1], 1, 52);
+                validarNumero(partes[2], 1, 7);
+                return;
+            }
+        }
+
+        throw new DescricaoAgendaInvalidaException();
+    }
+
+    private static void validarNumero(String valor, int minimo, int maximo)
+    {
+        try
+        {
+            int numero = Integer.parseInt(valor);
+
+            if(numero < minimo || numero > maximo)
+            {
+                throw new DescricaoAgendaInvalidaException();
+            }
+        }
+        catch(NumberFormatException e)
+        {
+            throw new DescricaoAgendaInvalidaException();
+        }
     }
 
     //Verifica se a data informada corresponde na agenda
@@ -36,28 +113,30 @@ public class AgendaPagamento
             return false;
         }
 
-        if("mensal $".equals(descricao))
+        if(contratacao != null && data.isBefore(contratacao))
         {
-            if(contratacao != null && data.isBefore(contratacao))
-            {
-                return false;
-            }
-
-            LocalDate ultimoDiaUtil = data.with(TemporalAdjusters.lastDayOfMonth());
-
-            while(ultimoDiaUtil.getDayOfWeek() == DayOfWeek.SATURDAY || ultimoDiaUtil.getDayOfWeek() == DayOfWeek.SUNDAY)
-            {
-                ultimoDiaUtil = ultimoDiaUtil.minusDays(1);
-            }
-
-            return data.equals(ultimoDiaUtil);
+            return false;
         }
 
         String[] partes = descricao.split(" ");
 
-        if(partes.length < 2 || !"semanal".equals(partes[0]))
+        if("mensal".equals(partes[0]))
         {
-            return false;
+            if("$".equals(partes[1]))
+            {
+                LocalDate ultimoDiaUtil = data.with(TemporalAdjusters.lastDayOfMonth());
+
+                while(ultimoDiaUtil.getDayOfWeek() == DayOfWeek.SATURDAY || ultimoDiaUtil.getDayOfWeek() == DayOfWeek.SUNDAY)
+                {
+                    ultimoDiaUtil = ultimoDiaUtil.minusDays(1);
+                }
+
+                return data.equals(ultimoDiaUtil);
+            }
+
+            int diaPagamento = Integer.parseInt(partes[1]);
+
+            return data.getDayOfMonth() == diaPagamento;
         }
 
         int intervaloSemanas;
@@ -68,19 +147,10 @@ public class AgendaPagamento
             intervaloSemanas = 1;
             numeroDia = Integer.parseInt(partes[1]);
         }
-        else if(partes.length == 3)
+        else
         {
             intervaloSemanas = Integer.parseInt(partes[1]);
             numeroDia = Integer.parseInt(partes[2]);
-        }
-        else
-        {
-            return false;
-        }
-
-        if(intervaloSemanas <= 0 || numeroDia < 1 || numeroDia > 7)
-        {
-            return false;
         }
 
         DayOfWeek diaPagamento = DayOfWeek.of(numeroDia);
@@ -90,22 +160,19 @@ public class AgendaPagamento
             return false;
         }
 
-        // Horistas sem data de contratação também podem receber na sexta
-        if(contratacao == null)
-        {
-            return intervaloSemanas == 1;
-        }
-
-        if(data.isBefore(contratacao))
-        {
-            return false;
-        }
-
         LocalDate primeiroPagamento = contratacao;
 
-        while(primeiroPagamento.getDayOfWeek() != diaPagamento)
+        if(primeiroPagamento == null)
         {
-            primeiroPagamento = primeiroPagamento.plusDays(1);
+            // Para empregados sem data de contratação, usa o primeiro dia da semana correspondente na própria semana da data
+            primeiroPagamento = data.with(TemporalAdjusters.previousOrSame(diaPagamento));
+        }
+        else
+        {
+            while(primeiroPagamento.getDayOfWeek() != diaPagamento)
+            {
+                primeiroPagamento = primeiroPagamento.plusDays(1);
+            }
         }
 
         long semanas = ChronoUnit.WEEKS.between(primeiroPagamento, data);
@@ -117,17 +184,19 @@ public class AgendaPagamento
 
     public int getQuantidadeSemanas()
     {
-        if("semanal 5".equals(descricao))
+        if(isMensal())
+        {
+            return 0;
+        }
+
+        String[] partes = descricao.split(" ");
+
+        if(partes.length == 2)
         {
             return 1;
         }
 
-        if("semanal 2 5".equals(descricao))
-        {
-            return 2;
-        }
-
-        return 0;
+        return Integer.parseInt(partes[1]);
     }
 
     //Indica se a agenda é mensal

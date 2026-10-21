@@ -3,85 +3,12 @@
  <object class="br.ufal.ic.p2.wepayu.Persistencia$DadosSistema" id="Persistencia$DadosSistema0">
   <void property="empregados">
    <void method="add">
-    <object class="br.ufal.ic.p2.wepayu.Persistencia$DadosEmpregado" id="Persistencia$DadosEmpregado0">
-     <void property="comissao">
-      <string>0.11</string>
-     </void>
-     <void property="dataContratacao">
-      <string>2005-01-01</string>
-     </void>
-     <void property="endereco">
-      <string>Rua Gama, 3 - Corinto</string>
-     </void>
-     <void property="id">
-      <string>1</string>
-     </void>
-     <void property="metodoPagamento">
-      <string>emMaos</string>
-     </void>
-     <void property="nome">
-      <string>Gama Tres Comissionado</string>
-     </void>
-     <void property="salario">
-      <string>2800.00</string>
-     </void>
-     <void property="taxaSindical">
-      <string>0</string>
-     </void>
-     <void property="tipo">
-      <string>comissionado</string>
-     </void>
-     <void property="vendas">
-      <void method="add">
-       <object class="br.ufal.ic.p2.wepayu.Persistencia$DadosVenda">
-        <void property="data">
-         <string>2005-01-01</string>
-        </void>
-        <void property="valor">
-         <string>100</string>
-        </void>
-       </object>
-      </void>
-      <void method="add">
-       <object class="br.ufal.ic.p2.wepayu.Persistencia$DadosVenda">
-        <void property="data">
-         <string>2005-01-02</string>
-        </void>
-        <void property="valor">
-         <string>200</string>
-        </void>
-       </object>
-      </void>
-      <void method="add">
-       <object class="br.ufal.ic.p2.wepayu.Persistencia$DadosVenda">
-        <void property="data">
-         <string>2005-01-16</string>
-        </void>
-        <void property="valor">
-         <string>200</string>
-        </void>
-       </object>
-      </void>
-      <void method="add">
-       <object class="br.ufal.ic.p2.wepayu.Persistencia$DadosVenda">
-        <void property="data">
-         <string>2005-01-30</string>
-        </void>
-        <void property="valor">
-         <string>300</string>
-        </void>
-       </object>
-      </void>
-     </void>
-    </object>
-   </void>
-   <void method="add">
     <object class="br.ufal.ic.p2.wepayu.Persistencia$DadosEmpregado">
      <void property="endereco">
       <string>Rua dos Jooes, 333 - Campina Grande</string>
      </void>
      <void property="id">
-      <string>2</string>
+      <string>1</string>
      </void>
      <void property="metodoPagamento">
       <string>emMaos</string>
@@ -100,68 +27,9 @@
      </void>
     </object>
    </void>
-   <void method="add">
-    <object class="br.ufal.ic.p2.wepayu.Persistencia$DadosEmpregado">
-     <void property="dataContratacao">
-      <string>2005-01-01</string>
-     </void>
-     <void property="endereco">
-      <string>Rua das Marias, 333 - Campina Grande</string>
-     </void>
-     <void property="id">
-      <string>3</string>
-     </void>
-     <void property="metodoPagamento">
-      <string>emMaos</string>
-     </void>
-     <void property="nome">
-      <string>Mariazinha</string>
-     </void>
-     <void property="salario">
-      <string>2300.45</string>
-     </void>
-     <void property="taxaSindical">
-      <string>0</string>
-     </void>
-     <void property="tipo">
-      <string>assalariado</string>
-     </void>
-    </object>
-   </void>
-   <void method="add">
-    <object class="br.ufal.ic.p2.wepayu.Persistencia$DadosEmpregado">
-     <void property="comissao">
-      <string>0.05</string>
-     </void>
-     <void property="dataContratacao">
-      <string>2005-01-01</string>
-     </void>
-     <void property="endereco">
-      <string>Rua dos Bufoes, 333 - Campina Grande</string>
-     </void>
-     <void property="id">
-      <string>4</string>
-     </void>
-     <void property="metodoPagamento">
-      <string>emMaos</string>
-     </void>
-     <void property="nome">
-      <string>Gaiato Vendedor</string>
-     </void>
-     <void property="salario">
-      <string>2300.45</string>
-     </void>
-     <void property="taxaSindical">
-      <string>0</string>
-     </void>
-     <void property="tipo">
-      <string>comissionado</string>
-     </void>
-    </object>
-   </void>
   </void>
   <void property="proximoId">
-   <int>5</int>
+   <int>2</int>
   </void>
  </object>
 </java>

@@ -142,9 +142,8 @@ public abstract class Empregado
 
         int semanas = agendaPagamento.getQuantidadeSemanas();
 
-        return getSalario().multiply(BigDecimal.valueOf(12)).divide(BigDecimal.valueOf(52), 10, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(semanas)).setScale(2, RoundingMode.DOWN);
+        return getSalario().multiply(BigDecimal.valueOf(12)).multiply(BigDecimal.valueOf(semanas)).divide(BigDecimal.valueOf(52), 10, RoundingMode.HALF_UP).setScale(2, RoundingMode.DOWN);
     }
-
 
     /*Define o tipo de empregado, já que tem tipos diferentes*/
 
