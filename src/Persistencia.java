@@ -118,6 +118,7 @@ public class Persistencia
         dados.setIdSindicato(empregado.getIdSindicato());
         dados.setTaxaSindical(empregado.getTaxaSindical().toString());
         dados.setMetodoPagamento(empregado.getMetodoPagamento());
+        dados.setAgendaPagamento(empregado.getAgendaPagamento());
         dados.setDataContratacao(dataParaTexto(empregado.getDataContratacao()));
         dados.setDataUltimoPagamento(dataParaTexto(empregado.getDataUltimoPagamento()));
 
@@ -180,6 +181,11 @@ public class Persistencia
         else
         {
             empregado = factory.criar(dados.getNome(), dados.getEndereco(), dados.getTipo(), salario);
+        }
+
+        if(dados.getAgendaPagamento() != null)
+        {
+            empregado.alteraAgendaPagamento(dados.getAgendaPagamento());
         }
 
         empregado.setDataContratacao(textoParaData(dados.getDataContratacao()));
@@ -315,6 +321,7 @@ public class Persistencia
         private String taxaSindical;
 
         private String metodoPagamento;
+        private String agendaPagamento;
 
         private String banco;
         private String agencia;
@@ -431,6 +438,16 @@ public class Persistencia
         public void setMetodoPagamento(String metodoPagamento)
         {
             this.metodoPagamento = metodoPagamento;
+        }
+
+        public String getAgendaPagamento()
+        {
+            return agendaPagamento;
+        }
+
+        public void setAgendaPagamento(String agendaPagamento)
+        {
+            this.agendaPagamento = agendaPagamento;
         }
 
         public String getBanco()
