@@ -1,6 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <java version="21.0.12.1" class="java.beans.XMLDecoder">
  <object class="br.ufal.ic.p2.wepayu.Persistencia$DadosSistema" id="Persistencia$DadosSistema0">
+  <void property="agendasPagamento">
+   <void method="add">
+    <string>semanal 5</string>
+   </void>
+   <void method="add">
+    <string>mensal $</string>
+   </void>
+   <void method="add">
+    <string>semanal 2 5</string>
+   </void>
+   <void method="add">
+    <string>mensal 1</string>
+   </void>
+   <void method="add">
+    <string>semanal 2</string>
+   </void>
+  </void>
   <void property="empregados">
    <void method="add">
     <object class="br.ufal.ic.p2.wepayu.Persistencia$DadosEmpregado">

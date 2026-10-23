@@ -28,10 +28,10 @@ public class Persistencia
     private static final String ARQUIVO = "wepayu.xml";
 
     // Salvando o estado atual do sistema
-    public static void salvar(Map<String, Empregado> empregados, int proximoId)
+    public static void salvar(Map<String, Empregado> empregados, Map<String, AgendaPagamento> agendasPagamento, int proximoId)
     {
         /*transforma o estado do sistema em objetos simples*/
-        DadosSistema dados = criarDadosSistema(empregados, proximoId);
+        DadosSistema dados = criarDadosSistema(empregados, agendasPagamento, proximoId);
 
         // Guarda possíveis erros relatados pelo XMLEncoder
 
@@ -87,7 +87,7 @@ public class Persistencia
 
     // Converte o mapa de empregados para um objeto simples paraser gravado pelo XMLEncoder
 
-    private static DadosSistema criarDadosSistema(Map<String, Empregado> empregados, int proximoId)
+    private static DadosSistema criarDadosSistema(Map<String, Empregado> empregados, Map<String, AgendaPagamento> agendasPagamento, int proximoId)
     {
         DadosSistema dados = new DadosSistema();
 
@@ -97,6 +97,12 @@ public class Persistencia
         {
             DadosEmpregado dadosEmpregado = criarDadosEmpregado(entrada.getKey(), entrada.getValue());
             dados.getEmpregados().add(dadosEmpregado);
+        }
+
+        // Salva as descrições das agendas disponíveis no sistema.
+        for (String descricao : agendasPagamento.keySet())
+        {
+            dados.getAgendasPagamento().add(descricao);
         }
 
         return dados;
@@ -280,6 +286,7 @@ public class Persistencia
     {
         private int proximoId;
         private List<DadosEmpregado> empregados = new ArrayList<>();
+        private List<String> agendasPagamento = new ArrayList<>();
 
         public DadosSistema()
         {
@@ -303,6 +310,16 @@ public class Persistencia
         public void setEmpregados(List<DadosEmpregado> empregados)
         {
             this.empregados = empregados;
+        }
+
+        public List<String> getAgendasPagamento()
+        {
+            return agendasPagamento;
+        }
+
+        public void setAgendasPagamento(List<String> agendasPagamento)
+        {
+            this.agendasPagamento = agendasPagamento;
         }
     }
 

@@ -65,6 +65,19 @@ public class Facade
 
         empregados.clear();
 
+        // Restaura as agendas salvas no XML
+        // Se o arquivo for antigo e não tiver agendas, mantém as padrão
+
+        if(dados.getAgendasPagamento() != null && !dados.getAgendasPagamento().isEmpty())
+        {
+            agendasPagamento.clear();
+
+            for(String descricao : dados.getAgendasPagamento())
+            {
+                agendasPagamento.put(descricao, new AgendaPagamento(descricao));
+            }
+        }
+
         for(Persistencia.DadosEmpregado dadosEmpregado : dados.getEmpregados())
         {
             Empregado empregado = Persistencia.criarEmpregado(dadosEmpregado, empregadoFactory);
@@ -937,7 +950,7 @@ public class Facade
 
     public void encerrarSistema()
     {
-        Persistencia.salvar(empregados, proximoId);
+        Persistencia.salvar(empregados, agendasPagamento, proximoId);
 
         sistemaEncerrado = true;
     }
