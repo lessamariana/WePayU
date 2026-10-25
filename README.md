@@ -103,26 +103,6 @@ O valor das vendas é utilizado no cálculo da comissão.
 
 ---
 
-# Funcionalidades
-
-Entre as funcionalidades implementadas estão:
-
-* Criação de empregados
-* Remoção de empregados
-* Alteração de dados
-* Consulta de empregados
-* Alteração de salário
-* Registro de cartões de ponto
-* Registro de vendas
-* Registro de sindicato
-* Registro de taxas de serviço
-* Alteração do método de pagamento
-* Cálculo da folha de pagamento
-* Execução da folha
-* Persistência dos dados
-
----
-
 # Métodos de pagamento
 
 O sistema possui diferentes formas de pagamento:
@@ -144,6 +124,42 @@ Nesse caso são armazenadas informações como:
 * banco
 * agência
 * conta corrente
+
+---
+
+# Funcionalidades
+
+Entre as funcionalidades implementadas estão:
+
+* Criação de empregados
+* Remoção de empregados
+* Alteração de dados
+* Consulta de empregados
+* Alteração de salário
+* Registro de cartões de ponto
+* Registro de vendas
+* Registro de sindicato
+* Registro de taxas de serviço
+* Alteração do método de pagamento
+* Cálculo da folha de pagamento
+* Execução da folha
+* Desfazer e refazer comandos (undo/redo)
+* Agendas de pagamento
+* Criação de agendas de pagamento customizadas
+* Persistência dos dados
+
+---
+
+# Histórias de usuário implementadas
+
+Todas as histórias de usuário, da US1 até a US10_1, estão implementadas e passando nos testes de aceitação.
+
+Nesta última etapa foram implementadas:
+
+* **US9 – Agendas de pagamento:** cada empregado passou a ter o atributo `agendaPagamento`, que pode ser consultado com `getAtributoEmpregado` e alterado com `alteraEmpregado`. As agendas padrão são `semanal 5` para horistas, `mensal $` para assalariados e `semanal 2 5` para comissionados.
+* **US9_1 – Persistência da US9:** a agenda de cada empregado é salva no XML e recuperada quando o sistema é iniciado novamente.
+* **US10 – Agendas de pagamento customizadas:** o comando `criarAgendaDePagamentos` permite cadastrar novas agendas, como `semanal 1`, `mensal 15` ou `semanal 4 3`. A descrição é validada: `semanal` aceita de 1 a 7 (dia da semana) ou, com dois parâmetros, de 1 a 52 semanas e de 1 a 7; `mensal` aceita de 1 a 28 ou `$` (último dia útil do mês).
+* **US10_1 – Persistência da US10:** as agendas criadas também são salvas no XML e continuam disponíveis depois que o sistema é reiniciado.
 
 ---
 
@@ -245,6 +261,27 @@ Isso ocorre porque os testes de persistência verificam se o estado criado anter
 
 ---
 
+# Refatoração
+
+Depois de concluir as histórias de usuário, o projeto foi refatorado com base no que foi estudado sobre refatoração, padrões de projeto e princípios SOLID, então deixo aqui alguns materiais que foram sugestões do monitor:
+
+* [Refactoring Guru – O que é refatoração](https://refactoring.guru/refactoring/what-is-refactoring)
+* [Alura – SOLID](https://www.alura.com.br/artigos/solid)
+
+A refatoração também levou em consideração os comentários da última correção do projeto. O comportamento do sistema foi mantido: todos os testes de aceitação continuam passando e as folhas de pagamento geradas são as mesmas de antes da refatoração. Os comentários feitos durante o desenvolvimento foram mantidos e acompanharam o código para as novas classes.
+
+---
+
+## Padrões de projeto utilizados
+
+* **Facade:** a classe `Facade` é o ponto único de entrada usado pelos testes e apenas delega para as demais classes.
+* **Factory:** `EmpregadoFactory` cria os tipos de empregado (inclusive na mudança de tipo) e `MetodoPagamentoFactory` cria os métodos de pagamento.
+* **Command:** cada operação que pode ser desfeita é representada por um `Controle` (`ControleEmpregado` ou `ControleGlobal`), empilhado no `HistoricoComandos`.
+* **Memento:** o estado dos empregados é guardado antes e depois de cada operação (`EstadoRepositorio`), permitindo o undo/redo.
+* **Repository:** `RepositorioEmpregados` e `RepositorioAgendas` concentram o armazenamento e a busca dos objetos.
+
+---
+
 # Conceitos de Programação Orientada a Objetos utilizados
 
 O projeto busca aplicar conceitos fundamentais de POO.
@@ -280,6 +317,25 @@ O projeto possui exceções específicas para diferentes situações inválidas,
 A camada de persistência também utiliza o polimorfismo presente no domínio, já que cada classe fornece os dados específicos necessários através de métodos polimórficos.
 
 Isso mantém a responsabilidade distribuída entre as classes e evita verificações explícitas do tipo do objeto.
+
+---
+
+# Estrutura do projeto
+
+```text
+src/br/ufal/ic/p2/wepayu
+├── Facade.java            → ponto de entrada dos testes, apenas delega
+├── Exception/             → exceções específicas do sistema
+├── models/
+│   ├── empregado/         → Empregado e subclasses, EmpregadoFactory, CartaoPonto, Venda, TaxaServico
+│   ├── pagamento/         → MetodoPagamento e subclasses, MetodoPagamentoFactory, AgendaPagamento
+│   └── folha/             → FolhaPagamento, RelatorioFolha, ResultadoPagamento, RegistroPagamento e subclasses
+├── repositorio/           → RepositorioEmpregados, GeradorId, EstadoRepositorio, MembrosSindicato, RepositorioAgendas
+├── servicos/              → AlteradorEmpregado
+├── controle/              → undo/redo (Controle, ControleEmpregado, ControleGlobal, HistoricoComandos) e EstadoSistema
+├── persistencia/          → Persistencia (XMLEncoder/XMLDecoder)
+└── utilitarios/           → DataTratamento, Formatador, ConversorValores, Periodo
+```
 
 ---
 
